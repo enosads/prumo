@@ -8,7 +8,7 @@ struct PrumoApp: App {
         WindowGroup {
             Group {
                 if session.isAuthenticated {
-                    DashboardView()
+                    MainTabView()
                 } else {
                     LoginView()
                 }
