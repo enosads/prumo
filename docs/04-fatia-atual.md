@@ -1,25 +1,30 @@
-# Fatia Atual — 0.1 & 0.2: Fundação, Multi-Tenancy & Scaffolding Inicial
+# Fatia Atual — Fase 1: MVP de Fluxo de Caixa, Cartões & Orçamento
 
-> **Status**: Em Execução · **Fase**: 0 (Fundação) · **Data de Início**: 2026-08-18
+> **Status**: Concluída · **Fase**: 1 (Fluxo de Caixa & Orçamento) · **Data de Conclusão**: 2026-08-18
 
 ## Objetivo da Fatia
-Construir o alicerce do ecossistema **Prumo**:
-1. **Infraestrutura**: Configurar PostgreSQL 18 e Redis no `docker-compose.yml` (porta 5434).
-2. **Schema & Banco**: Criar o schema relacional inicial (`0001_initial_schema.up.sql`), queries SQL e geração de código tipado via `sqlc` com quality gate no `sqlcprepare`.
-3. **Backend Go**: Implementar o servidor HTTP com Chi e Huma v2 OpenAPI 3.0, middlewares de recuperação/logging, emissão e validação de JWT multi-tenant com claims de família e RBAC (`owner`, `admin`, `member`, `viewer`), handlers de registro, login, gerenciamento de membros familiares e contas financeiras.
-4. **App iOS**: Configuração do projeto via XcodeGen (`project.yml`), design tokens em `Brand.swift`, cliente de API assíncrono `APIClient.swift`, gerenciador de sessão `AuthSession.swift` com keychain seguro e telas base de Autenticação e Dashboard.
-5. **Quality Gate**: Automação do `scripts/smoke.sh` cobrindo registro de usuário, criação de família, convite de parceiro(a), troca de papéis, listagem de contas e asserção de erros de autenticação (401/403/422).
-
-## Convenções da Fatia
-- Nomes de tabelas e colunas em inglês; documentação e comentários em português.
-- Dinheiro sempre em inteiros (`amount_cents BIGINT`).
-- Multi-tenancy validado no nível de middleware com injeção de contexto (`FamilyID`, `UserID`, `Role`).
+Construir o motor financeiro e a experiência do usuário do **Prumo**:
+1. **Fatia 1.1: Categorias & Lançamento de Transações (Extrato Familiar)**
+   - CRUD completo de categorias (`/v1/categories`) com auto-seed de categorias padrão familiares.
+   - Lançamento de Receitas, Despesas e Transferências atômicas entre contas (`/v1/transactions`).
+   - Extrato no app iOS (`CashFlowView.swift`) agrupado por dia, com busca, filtros por tipo e membro responsável.
+   - Sheet de Lançamento Rápido (`NewTransactionSheet.swift`) com `CampoMonetario.swift`, seletor visual de categoria e parcelas.
+2. **Fatia 1.2: Cartões de Crédito, Faturas e Parcelamentos Mês a Mês**
+   - Endpoints de cartões (`/v1/cards`), faturas mensais e pagamento com débito em conta corrente (`/v1/cards/{id}/invoices/{id}/pay`).
+   - Motor de compras parceladas com geração automática de parcelas distribuídas nas faturas subsequentes.
+   - Projeção de faturas dos próximos 12 meses (`/v1/cards/{id}/installments`) com divisão de gastos por membro do casal.
+   - Simulação e aplicação de antecipação de parcelas com cálculo a valor presente (`/v1/cards/{id}/installments/anticipate`).
+   - Telas iOS: Carrossel moderno de cartões (`CardsView.swift`), detalhes e pagamento de fatura (`CardDetailView.swift`) e sheet de antecipação (`AnticipateInstallmentsSheet.swift`).
+3. **Fatia 1.3: Orçamentos por Envelope e Metas de Economia**
+   - Envelopes mensais por categoria (`/v1/budgets` e `/v1/budgets/{id}/items`) com cálculo de realizado vs. orçado.
+   - Cálculo automático do valor "Livre para Investir" no mês.
+   - Tela iOS de envelopes (`BudgetsView.swift`) com seletor de mês e barras de progresso com transição de cor (Verde <75%, Âmbar 75-100%, Vermelho >100%) e sheet de configuração (`SetBudgetItemSheet.swift`).
 
 ## Checklist de Entrega
-- [x] Blueprint arquitetural aprovado
-- [ ] Docker compose com Postgres 18 e Redis ativo
-- [ ] Schema inicial DDL e migrations aplicadas
-- [ ] Configuração do sqlc e queries compiladas
-- [ ] Endpoints Huma v2 implementados (`/v1/auth/register`, `/v1/auth/login`, `/v1/families`, `/v1/accounts`)
-- [ ] Setup do XcodeGen e compilação do target iOS
-- [ ] Execução com sucesso do `scripts/smoke.sh`
+- [x] Schema DDL, queries sqlc (`categories.sql`, `transactions.sql`, `cards.sql`, `budgets.sql`) e quality gate `sqlcprepare` (75 queries aprovadas)
+- [x] Endpoints Go Huma v2 implementados e integrados no router
+- [x] Testes unitários de domínio financeiro (`calculations_test.go`)
+- [x] Telas e componentes SwiftUI nativos (iOS 17+) compilados com sucesso via XcodeGen
+- [x] Suíte de 26 Smoke Tests E2E (`scripts/smoke.sh`) passando com 100% de sucesso
+- [x] Contrato OpenAPI atualizado (`backend/openapi.json`)
+
