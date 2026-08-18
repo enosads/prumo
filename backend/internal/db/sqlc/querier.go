@@ -43,6 +43,7 @@ type Querier interface {
 	GetBudgetByPeriod(ctx context.Context, arg GetBudgetByPeriodParams) (Budget, error)
 	GetCategoryByID(ctx context.Context, arg GetCategoryByIDParams) (Category, error)
 	GetCategorySpendingForPeriod(ctx context.Context, arg GetCategorySpendingForPeriodParams) ([]GetCategorySpendingForPeriodRow, error)
+	GetCreditCardByAccountID(ctx context.Context, arg GetCreditCardByAccountIDParams) (CreditCard, error)
 	GetCreditCardByID(ctx context.Context, arg GetCreditCardByIDParams) (CreditCard, error)
 	GetCreditCardInvoiceByID(ctx context.Context, arg GetCreditCardInvoiceByIDParams) (CreditCardInvoice, error)
 	GetCreditCardInvoiceByPeriod(ctx context.Context, arg GetCreditCardInvoiceByPeriodParams) (CreditCardInvoice, error)

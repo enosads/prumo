@@ -112,6 +112,35 @@ func (q *Queries) CreateCreditCardInvoice(ctx context.Context, arg CreateCreditC
 	return i, err
 }
 
+const getCreditCardByAccountID = `-- name: GetCreditCardByAccountID :one
+SELECT id, account_id, family_id, name, last_four_digits, credit_limit_cents, closing_day, due_day, color, created_at, updated_at FROM credit_cards
+WHERE account_id = $1 AND family_id = $2
+`
+
+type GetCreditCardByAccountIDParams struct {
+	AccountID uuid.UUID
+	FamilyID  uuid.UUID
+}
+
+func (q *Queries) GetCreditCardByAccountID(ctx context.Context, arg GetCreditCardByAccountIDParams) (CreditCard, error) {
+	row := q.db.QueryRow(ctx, getCreditCardByAccountID, arg.AccountID, arg.FamilyID)
+	var i CreditCard
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.FamilyID,
+		&i.Name,
+		&i.LastFourDigits,
+		&i.CreditLimitCents,
+		&i.ClosingDay,
+		&i.DueDay,
+		&i.Color,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getCreditCardByID = `-- name: GetCreditCardByID :one
 SELECT id, account_id, family_id, name, last_four_digits, credit_limit_cents, closing_day, due_day, color, created_at, updated_at FROM credit_cards
 WHERE id = $1 AND family_id = $2

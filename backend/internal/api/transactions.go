@@ -22,8 +22,8 @@ type CreateTransactionInput struct {
 		AmountCents          int64      `json:"amount_cents" minimum:"1" doc:"Valor em centavos"`
 		Description          string     `json:"description" minLength:"1" doc:"Descrição da transação"`
 		TransactedAt         *time.Time `json:"transacted_at,omitempty" doc:"Data/hora do lançamento"`
-		Status               string     `json:"status" enum:"pending,completed,cancelled" default:"completed" doc:"Status"`
-		InstallmentTotal     int        `json:"installment_total" default:"1" minimum:"1" maximum:"72" doc:"Número total de parcelas (para compras parceladas)"`
+		Status               string     `json:"status,omitempty" enum:"pending,completed,cancelled" default:"completed" doc:"Status"`
+		InstallmentTotal     int        `json:"installment_total,omitempty" default:"1" minimum:"1" maximum:"72" doc:"Número total de parcelas (para compras parceladas)"`
 		CreditCardInvoiceID  *uuid.UUID `json:"credit_card_invoice_id,omitempty" doc:"ID da fatura de cartão vinculada"`
 		Tags                 []string   `json:"tags,omitempty" doc:"Tags para busca e agrupamento"`
 		Notes                *string    `json:"notes,omitempty" doc:"Observações adicionais"`
@@ -38,14 +38,14 @@ type CreateTransactionOutput struct {
 }
 
 type ListTransactionsInput struct {
-	AccountID  *uuid.UUID `query:"account_id" doc:"Filtrar por conta"`
-	CategoryID *uuid.UUID `query:"category_id" doc:"Filtrar por categoria"`
-	Kind       *string    `query:"kind" doc:"Filtrar por tipo (income, expense, transfer)"`
-	UserID     *uuid.UUID `query:"user_id" doc:"Filtrar por membro da família"`
-	From       *time.Time `query:"from" doc:"Data inicial"`
-	To         *time.Time `query:"to" doc:"Data final"`
-	Limit      int        `query:"limit" default:"50" doc:"Limite de registros"`
-	Offset     int        `query:"offset" default:"0" doc:"Offset de paginação"`
+	AccountID  uuid.UUID `query:"account_id" doc:"Filtrar por conta"`
+	CategoryID uuid.UUID `query:"category_id" doc:"Filtrar por categoria"`
+	Kind       string    `query:"kind" doc:"Filtrar por tipo (income, expense, transfer)"`
+	UserID     uuid.UUID `query:"user_id" doc:"Filtrar por membro da família"`
+	From       time.Time `query:"from" doc:"Data inicial"`
+	To         time.Time `query:"to" doc:"Data final"`
+	Limit      int       `query:"limit" default:"50" doc:"Limite de registros"`
+	Offset     int       `query:"offset" default:"0" doc:"Offset de paginação"`
 }
 
 type ListTransactionsOutput struct {
@@ -187,6 +187,17 @@ func (s *Server) registerTransactionRoutes(api huma.API) {
 			return resp, nil
 		}
 
+		var card *sqlc.CreditCard
+		if account.Kind == "credit_card" {
+			c, err := s.db.GetCreditCardByAccountID(ctx, sqlc.GetCreditCardByAccountIDParams{
+				AccountID: account.ID,
+				FamilyID:  *uCtx.FamilyID,
+			})
+			if err == nil {
+				card = &c
+			}
+		}
+
 		// Se for compra parcelada (N > 1)
 		if installmentTotal > 1 {
 			groupID := uuid.New()
@@ -209,6 +220,37 @@ func (s *Server) registerTransactionRoutes(api huma.API) {
 				var invoiceID *uuid.UUID
 				if input.Body.CreditCardInvoiceID != nil && i == 1 {
 					invoiceID = input.Body.CreditCardInvoiceID
+				} else if card != nil {
+					y := int16(instDate.Year())
+					m := int16(instDate.Month())
+					inv, err := s.db.GetCreditCardInvoiceByPeriod(ctx, sqlc.GetCreditCardInvoiceByPeriodParams{
+						CreditCardID: card.ID,
+						PeriodYear:   y,
+						PeriodMonth:  m,
+					})
+					if err != nil {
+						closingDate := calculateInvoiceDate(int(y), int(m), int(card.ClosingDay))
+						dueDate := calculateInvoiceDate(int(y), int(m), int(card.DueDay))
+						if card.DueDay < card.ClosingDay {
+							dueDate = dueDate.AddDate(0, 1, 0)
+						}
+						inv, _ = s.db.CreateCreditCardInvoice(ctx, sqlc.CreateCreditCardInvoiceParams{
+							CreditCardID:     card.ID,
+							FamilyID:         *uCtx.FamilyID,
+							PeriodYear:       y,
+							PeriodMonth:      m,
+							ClosingDate:      closingDate,
+							DueDate:          dueDate,
+							TotalAmountCents: 0,
+							Status:           "open",
+						})
+					}
+					invoiceID = &inv.ID
+					_, _ = s.db.UpdateCreditCardInvoiceTotals(ctx, sqlc.UpdateCreditCardInvoiceTotalsParams{
+						ID:               inv.ID,
+						FamilyID:         *uCtx.FamilyID,
+						TotalAmountCents: inv.TotalAmountCents + instAmount,
+					})
 				}
 
 				tx, err := s.db.CreateTransaction(ctx, sqlc.CreateTransactionParams{
@@ -270,6 +312,42 @@ func (s *Server) registerTransactionRoutes(api huma.API) {
 			}
 		}
 
+		var invoiceID *uuid.UUID
+		if input.Body.CreditCardInvoiceID != nil {
+			invoiceID = input.Body.CreditCardInvoiceID
+		} else if card != nil {
+			y := int16(transactedAt.Year())
+			m := int16(transactedAt.Month())
+			inv, err := s.db.GetCreditCardInvoiceByPeriod(ctx, sqlc.GetCreditCardInvoiceByPeriodParams{
+				CreditCardID: card.ID,
+				PeriodYear:   y,
+				PeriodMonth:  m,
+			})
+			if err != nil {
+				closingDate := calculateInvoiceDate(int(y), int(m), int(card.ClosingDay))
+				dueDate := calculateInvoiceDate(int(y), int(m), int(card.DueDay))
+				if card.DueDay < card.ClosingDay {
+					dueDate = dueDate.AddDate(0, 1, 0)
+				}
+				inv, _ = s.db.CreateCreditCardInvoice(ctx, sqlc.CreateCreditCardInvoiceParams{
+					CreditCardID:     card.ID,
+					FamilyID:         *uCtx.FamilyID,
+					PeriodYear:       y,
+					PeriodMonth:      m,
+					ClosingDate:      closingDate,
+					DueDate:          dueDate,
+					TotalAmountCents: 0,
+					Status:           "open",
+				})
+			}
+			invoiceID = &inv.ID
+			_, _ = s.db.UpdateCreditCardInvoiceTotals(ctx, sqlc.UpdateCreditCardInvoiceTotalsParams{
+				ID:               inv.ID,
+				FamilyID:         *uCtx.FamilyID,
+				TotalAmountCents: inv.TotalAmountCents + input.Body.AmountCents,
+			})
+		}
+
 		tx, err := s.db.CreateTransaction(ctx, sqlc.CreateTransactionParams{
 			FamilyID:            *uCtx.FamilyID,
 			AccountID:           account.ID,
@@ -281,7 +359,7 @@ func (s *Server) registerTransactionRoutes(api huma.API) {
 			Description:         input.Body.Description,
 			TransactedAt:        transactedAt,
 			Status:              status,
-			CreditCardInvoiceID: input.Body.CreditCardInvoiceID,
+			CreditCardInvoiceID: invoiceID,
 			InstallmentNumber:   ptrInt16(1),
 			InstallmentTotal:    ptrInt16(1),
 			InstallmentGroupID:  nil,
@@ -319,14 +397,39 @@ func (s *Server) registerTransactionRoutes(api huma.API) {
 			offset = 0
 		}
 
+		var accountID *uuid.UUID
+		if input.AccountID != uuid.Nil {
+			accountID = &input.AccountID
+		}
+		var categoryID *uuid.UUID
+		if input.CategoryID != uuid.Nil {
+			categoryID = &input.CategoryID
+		}
+		var kind *string
+		if input.Kind != "" {
+			kind = &input.Kind
+		}
+		var userID *uuid.UUID
+		if input.UserID != uuid.Nil {
+			userID = &input.UserID
+		}
+		var from *time.Time
+		if !input.From.IsZero() {
+			from = &input.From
+		}
+		var to *time.Time
+		if !input.To.IsZero() {
+			to = &input.To
+		}
+
 		txs, err := s.db.ListTransactionsByFamilyIDWithFilters(ctx, sqlc.ListTransactionsByFamilyIDWithFiltersParams{
 			FamilyID:    *uCtx.FamilyID,
-			AccountID:   input.AccountID,
-			CategoryID:  input.CategoryID,
-			Kind:        input.Kind,
-			UserID:      input.UserID,
-			FromDate:    input.From,
-			ToDate:      input.To,
+			AccountID:   accountID,
+			CategoryID:  categoryID,
+			Kind:        kind,
+			UserID:      userID,
+			FromDate:    from,
+			ToDate:      to,
 			OffsetCount: offset,
 			LimitCount:  limit,
 		})
@@ -336,11 +439,11 @@ func (s *Server) registerTransactionRoutes(api huma.API) {
 
 		// Calcula totais do período se from e to estiverem preenchidos
 		var totals *MonthlyCashFlowSummary
-		if input.From != nil && input.To != nil {
+		if from != nil && to != nil {
 			cfTotals, err := s.db.GetMonthlyCashFlowTotals(ctx, sqlc.GetMonthlyCashFlowTotalsParams{
 				FamilyID:  *uCtx.FamilyID,
-				StartDate: *input.From,
-				EndDate:   *input.To,
+				StartDate: *from,
+				EndDate:   *to,
 			})
 			if err == nil {
 				totals = &MonthlyCashFlowSummary{

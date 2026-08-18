@@ -16,7 +16,7 @@ type CreateCategoryInput struct {
 		Name     string     `json:"name" minLength:"2" doc:"Nome da categoria (ex: Alimentação, Moradia)"`
 		Icon     *string    `json:"icon,omitempty" doc:"Nome do ícone SF Symbols (ex: cart.fill, house.fill)"`
 		Color    *string    `json:"color,omitempty" doc:"Cor hexadecimal para UI (ex: #FF9500)"`
-		Kind     string     `json:"kind" enum:"income,expense,both" default:"expense" doc:"Tipo da categoria"`
+		Kind     string     `json:"kind,omitempty" enum:"income,expense,both" default:"expense" doc:"Tipo da categoria"`
 		ParentID *uuid.UUID `json:"parent_id,omitempty" doc:"ID da categoria pai para hierarquia"`
 	}
 }

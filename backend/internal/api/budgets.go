@@ -13,8 +13,8 @@ import (
 )
 
 type GetBudgetInput struct {
-	Year  *int `query:"year" doc:"Ano do orçamento (padrão: ano atual)"`
-	Month *int `query:"month" doc:"Mês do orçamento (1-12, padrão: mês atual)"`
+	Year  int `query:"year" doc:"Ano do orçamento (padrão: ano atual)"`
+	Month int `query:"month" doc:"Mês do orçamento (1-12, padrão: mês atual)"`
 }
 
 type BudgetItemDetail struct {
@@ -53,7 +53,7 @@ type UpsertBudgetItemInput struct {
 	Body struct {
 		CategoryID           uuid.UUID `json:"category_id" doc:"ID da categoria"`
 		AllocatedAmountCents int64     `json:"allocated_amount_cents" minimum:"0" doc:"Teto alocado em centavos"`
-		RolloverEnabled      bool      `json:"rollover_enabled" default:"false" doc:"Permite acúmulo de saldo para o mês seguinte"`
+		RolloverEnabled      bool      `json:"rollover_enabled,omitempty" default:"false" doc:"Permite acúmulo de saldo para o mês seguinte"`
 	}
 }
 
@@ -86,11 +86,11 @@ func (s *Server) registerBudgetRoutes(api huma.API) {
 		now := time.Now()
 		year := now.Year()
 		month := int(now.Month())
-		if input.Year != nil && *input.Year > 0 {
-			year = *input.Year
+		if input.Year > 0 {
+			year = input.Year
 		}
-		if input.Month != nil && *input.Month >= 1 && *input.Month <= 12 {
-			month = *input.Month
+		if input.Month >= 1 && input.Month <= 12 {
+			month = input.Month
 		}
 
 		budget, err := s.db.GetBudgetByPeriod(ctx, sqlc.GetBudgetByPeriodParams{
