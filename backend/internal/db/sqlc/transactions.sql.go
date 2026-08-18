@@ -105,6 +105,77 @@ func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionPa
 	return err
 }
 
+const getCategorySpendingForPeriod = `-- name: GetCategorySpendingForPeriod :many
+SELECT category_id, COALESCE(SUM(amount_cents), 0)::bigint as total_spent_cents
+FROM transactions
+WHERE family_id = $1
+  AND kind = 'expense'
+  AND status = 'completed'
+  AND transacted_at >= $2
+  AND transacted_at <= $3
+GROUP BY category_id
+`
+
+type GetCategorySpendingForPeriodParams struct {
+	FamilyID  uuid.UUID
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+type GetCategorySpendingForPeriodRow struct {
+	CategoryID      *uuid.UUID
+	TotalSpentCents int64
+}
+
+func (q *Queries) GetCategorySpendingForPeriod(ctx context.Context, arg GetCategorySpendingForPeriodParams) ([]GetCategorySpendingForPeriodRow, error) {
+	rows, err := q.db.Query(ctx, getCategorySpendingForPeriod, arg.FamilyID, arg.StartDate, arg.EndDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCategorySpendingForPeriodRow{}
+	for rows.Next() {
+		var i GetCategorySpendingForPeriodRow
+		if err := rows.Scan(&i.CategoryID, &i.TotalSpentCents); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMonthlyCashFlowTotals = `-- name: GetMonthlyCashFlowTotals :one
+SELECT 
+    COALESCE(SUM(CASE WHEN kind = 'income' THEN amount_cents ELSE 0 END), 0)::bigint as total_income_cents,
+    COALESCE(SUM(CASE WHEN kind = 'expense' THEN amount_cents ELSE 0 END), 0)::bigint as total_expense_cents
+FROM transactions
+WHERE family_id = $1
+  AND status = 'completed'
+  AND transacted_at >= $2
+  AND transacted_at <= $3
+`
+
+type GetMonthlyCashFlowTotalsParams struct {
+	FamilyID  uuid.UUID
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+type GetMonthlyCashFlowTotalsRow struct {
+	TotalIncomeCents  int64
+	TotalExpenseCents int64
+}
+
+func (q *Queries) GetMonthlyCashFlowTotals(ctx context.Context, arg GetMonthlyCashFlowTotalsParams) (GetMonthlyCashFlowTotalsRow, error) {
+	row := q.db.QueryRow(ctx, getMonthlyCashFlowTotals, arg.FamilyID, arg.StartDate, arg.EndDate)
+	var i GetMonthlyCashFlowTotalsRow
+	err := row.Scan(&i.TotalIncomeCents, &i.TotalExpenseCents)
+	return i, err
+}
+
 const getTransactionByID = `-- name: GetTransactionByID :one
 SELECT t.id, t.family_id, t.account_id, t.category_id, t.created_by_user_id, t.target_user_id, t.kind, t.amount_cents, t.description, t.transacted_at, t.status, t.credit_card_invoice_id, t.installment_number, t.installment_total, t.installment_group_id, t.tags, t.notes, t.created_at, t.updated_at, c.name as category_name, a.name as account_name, u.full_name as author_name
 FROM transactions t
@@ -274,4 +345,335 @@ func (q *Queries) ListTransactionsByFamilyID(ctx context.Context, arg ListTransa
 		return nil, err
 	}
 	return items, nil
+}
+
+const listTransactionsByFamilyIDWithFilters = `-- name: ListTransactionsByFamilyIDWithFilters :many
+SELECT t.id, t.family_id, t.account_id, t.category_id, t.created_by_user_id, t.target_user_id, t.kind, t.amount_cents, t.description, t.transacted_at, t.status, t.credit_card_invoice_id, t.installment_number, t.installment_total, t.installment_group_id, t.tags, t.notes, t.created_at, t.updated_at, c.name as category_name, c.icon as category_icon, c.color as category_color, a.name as account_name, u.full_name as author_name, tu.full_name as target_name
+FROM transactions t
+LEFT JOIN categories c ON c.id = t.category_id
+JOIN accounts a ON a.id = t.account_id
+JOIN users u ON u.id = t.created_by_user_id
+LEFT JOIN users tu ON tu.id = t.target_user_id
+WHERE t.family_id = $1
+  AND ($2::uuid IS NULL OR t.account_id = $2)
+  AND ($3::uuid IS NULL OR t.category_id = $3)
+  AND ($4::varchar IS NULL OR t.kind = $4)
+  AND ($5::uuid IS NULL OR t.target_user_id = $5 OR t.created_by_user_id = $5)
+  AND ($6::timestamptz IS NULL OR t.transacted_at >= $6)
+  AND ($7::timestamptz IS NULL OR t.transacted_at <= $7)
+ORDER BY t.transacted_at DESC, t.created_at DESC
+LIMIT $9 OFFSET $8
+`
+
+type ListTransactionsByFamilyIDWithFiltersParams struct {
+	FamilyID    uuid.UUID
+	AccountID   *uuid.UUID
+	CategoryID  *uuid.UUID
+	Kind        *string
+	UserID      *uuid.UUID
+	FromDate    *time.Time
+	ToDate      *time.Time
+	OffsetCount int32
+	LimitCount  int32
+}
+
+type ListTransactionsByFamilyIDWithFiltersRow struct {
+	ID                  uuid.UUID
+	FamilyID            uuid.UUID
+	AccountID           uuid.UUID
+	CategoryID          *uuid.UUID
+	CreatedByUserID     uuid.UUID
+	TargetUserID        *uuid.UUID
+	Kind                string
+	AmountCents         int64
+	Description         string
+	TransactedAt        time.Time
+	Status              string
+	CreditCardInvoiceID *uuid.UUID
+	InstallmentNumber   *int16
+	InstallmentTotal    *int16
+	InstallmentGroupID  *uuid.UUID
+	Tags                []string
+	Notes               *string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	CategoryName        *string
+	CategoryIcon        *string
+	CategoryColor       *string
+	AccountName         string
+	AuthorName          string
+	TargetName          *string
+}
+
+func (q *Queries) ListTransactionsByFamilyIDWithFilters(ctx context.Context, arg ListTransactionsByFamilyIDWithFiltersParams) ([]ListTransactionsByFamilyIDWithFiltersRow, error) {
+	rows, err := q.db.Query(ctx, listTransactionsByFamilyIDWithFilters,
+		arg.FamilyID,
+		arg.AccountID,
+		arg.CategoryID,
+		arg.Kind,
+		arg.UserID,
+		arg.FromDate,
+		arg.ToDate,
+		arg.OffsetCount,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTransactionsByFamilyIDWithFiltersRow{}
+	for rows.Next() {
+		var i ListTransactionsByFamilyIDWithFiltersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.AccountID,
+			&i.CategoryID,
+			&i.CreatedByUserID,
+			&i.TargetUserID,
+			&i.Kind,
+			&i.AmountCents,
+			&i.Description,
+			&i.TransactedAt,
+			&i.Status,
+			&i.CreditCardInvoiceID,
+			&i.InstallmentNumber,
+			&i.InstallmentTotal,
+			&i.InstallmentGroupID,
+			&i.Tags,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CategoryName,
+			&i.CategoryIcon,
+			&i.CategoryColor,
+			&i.AccountName,
+			&i.AuthorName,
+			&i.TargetName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTransactionsByInstallmentGroupID = `-- name: ListTransactionsByInstallmentGroupID :many
+SELECT t.id, t.family_id, t.account_id, t.category_id, t.created_by_user_id, t.target_user_id, t.kind, t.amount_cents, t.description, t.transacted_at, t.status, t.credit_card_invoice_id, t.installment_number, t.installment_total, t.installment_group_id, t.tags, t.notes, t.created_at, t.updated_at, cci.period_year, cci.period_month
+FROM transactions t
+LEFT JOIN credit_card_invoices cci ON cci.id = t.credit_card_invoice_id
+WHERE t.installment_group_id = $1 AND t.family_id = $2
+ORDER BY t.installment_number ASC
+`
+
+type ListTransactionsByInstallmentGroupIDParams struct {
+	InstallmentGroupID *uuid.UUID
+	FamilyID           uuid.UUID
+}
+
+type ListTransactionsByInstallmentGroupIDRow struct {
+	ID                  uuid.UUID
+	FamilyID            uuid.UUID
+	AccountID           uuid.UUID
+	CategoryID          *uuid.UUID
+	CreatedByUserID     uuid.UUID
+	TargetUserID        *uuid.UUID
+	Kind                string
+	AmountCents         int64
+	Description         string
+	TransactedAt        time.Time
+	Status              string
+	CreditCardInvoiceID *uuid.UUID
+	InstallmentNumber   *int16
+	InstallmentTotal    *int16
+	InstallmentGroupID  *uuid.UUID
+	Tags                []string
+	Notes               *string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	PeriodYear          *int16
+	PeriodMonth         *int16
+}
+
+func (q *Queries) ListTransactionsByInstallmentGroupID(ctx context.Context, arg ListTransactionsByInstallmentGroupIDParams) ([]ListTransactionsByInstallmentGroupIDRow, error) {
+	rows, err := q.db.Query(ctx, listTransactionsByInstallmentGroupID, arg.InstallmentGroupID, arg.FamilyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTransactionsByInstallmentGroupIDRow{}
+	for rows.Next() {
+		var i ListTransactionsByInstallmentGroupIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.AccountID,
+			&i.CategoryID,
+			&i.CreatedByUserID,
+			&i.TargetUserID,
+			&i.Kind,
+			&i.AmountCents,
+			&i.Description,
+			&i.TransactedAt,
+			&i.Status,
+			&i.CreditCardInvoiceID,
+			&i.InstallmentNumber,
+			&i.InstallmentTotal,
+			&i.InstallmentGroupID,
+			&i.Tags,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.PeriodYear,
+			&i.PeriodMonth,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTransactionsByInvoiceID = `-- name: ListTransactionsByInvoiceID :many
+SELECT t.id, t.family_id, t.account_id, t.category_id, t.created_by_user_id, t.target_user_id, t.kind, t.amount_cents, t.description, t.transacted_at, t.status, t.credit_card_invoice_id, t.installment_number, t.installment_total, t.installment_group_id, t.tags, t.notes, t.created_at, t.updated_at, c.name as category_name, c.icon as category_icon, c.color as category_color, u.full_name as author_name, tu.full_name as target_name
+FROM transactions t
+LEFT JOIN categories c ON c.id = t.category_id
+JOIN users u ON u.id = t.created_by_user_id
+LEFT JOIN users tu ON tu.id = t.target_user_id
+WHERE t.credit_card_invoice_id = $1 AND t.family_id = $2
+ORDER BY t.transacted_at DESC, t.created_at DESC
+`
+
+type ListTransactionsByInvoiceIDParams struct {
+	CreditCardInvoiceID *uuid.UUID
+	FamilyID            uuid.UUID
+}
+
+type ListTransactionsByInvoiceIDRow struct {
+	ID                  uuid.UUID
+	FamilyID            uuid.UUID
+	AccountID           uuid.UUID
+	CategoryID          *uuid.UUID
+	CreatedByUserID     uuid.UUID
+	TargetUserID        *uuid.UUID
+	Kind                string
+	AmountCents         int64
+	Description         string
+	TransactedAt        time.Time
+	Status              string
+	CreditCardInvoiceID *uuid.UUID
+	InstallmentNumber   *int16
+	InstallmentTotal    *int16
+	InstallmentGroupID  *uuid.UUID
+	Tags                []string
+	Notes               *string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	CategoryName        *string
+	CategoryIcon        *string
+	CategoryColor       *string
+	AuthorName          string
+	TargetName          *string
+}
+
+func (q *Queries) ListTransactionsByInvoiceID(ctx context.Context, arg ListTransactionsByInvoiceIDParams) ([]ListTransactionsByInvoiceIDRow, error) {
+	rows, err := q.db.Query(ctx, listTransactionsByInvoiceID, arg.CreditCardInvoiceID, arg.FamilyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTransactionsByInvoiceIDRow{}
+	for rows.Next() {
+		var i ListTransactionsByInvoiceIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.AccountID,
+			&i.CategoryID,
+			&i.CreatedByUserID,
+			&i.TargetUserID,
+			&i.Kind,
+			&i.AmountCents,
+			&i.Description,
+			&i.TransactedAt,
+			&i.Status,
+			&i.CreditCardInvoiceID,
+			&i.InstallmentNumber,
+			&i.InstallmentTotal,
+			&i.InstallmentGroupID,
+			&i.Tags,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CategoryName,
+			&i.CategoryIcon,
+			&i.CategoryColor,
+			&i.AuthorName,
+			&i.TargetName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateTransactionInvoiceAndAmount = `-- name: UpdateTransactionInvoiceAndAmount :one
+UPDATE transactions
+SET credit_card_invoice_id = $3,
+    amount_cents = $4,
+    notes = $5,
+    updated_at = now()
+WHERE id = $1 AND family_id = $2
+RETURNING id, family_id, account_id, category_id, created_by_user_id, target_user_id, kind, amount_cents, description, transacted_at, status, credit_card_invoice_id, installment_number, installment_total, installment_group_id, tags, notes, created_at, updated_at
+`
+
+type UpdateTransactionInvoiceAndAmountParams struct {
+	ID                  uuid.UUID
+	FamilyID            uuid.UUID
+	CreditCardInvoiceID *uuid.UUID
+	AmountCents         int64
+	Notes               *string
+}
+
+func (q *Queries) UpdateTransactionInvoiceAndAmount(ctx context.Context, arg UpdateTransactionInvoiceAndAmountParams) (Transaction, error) {
+	row := q.db.QueryRow(ctx, updateTransactionInvoiceAndAmount,
+		arg.ID,
+		arg.FamilyID,
+		arg.CreditCardInvoiceID,
+		arg.AmountCents,
+		arg.Notes,
+	)
+	var i Transaction
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.AccountID,
+		&i.CategoryID,
+		&i.CreatedByUserID,
+		&i.TargetUserID,
+		&i.Kind,
+		&i.AmountCents,
+		&i.Description,
+		&i.TransactedAt,
+		&i.Status,
+		&i.CreditCardInvoiceID,
+		&i.InstallmentNumber,
+		&i.InstallmentTotal,
+		&i.InstallmentGroupID,
+		&i.Tags,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

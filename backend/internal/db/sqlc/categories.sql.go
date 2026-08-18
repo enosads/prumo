@@ -11,6 +11,18 @@ import (
 	"github.com/google/uuid"
 )
 
+const countCategoriesByFamilyID = `-- name: CountCategoriesByFamilyID :one
+SELECT count(*) FROM categories
+WHERE family_id = $1
+`
+
+func (q *Queries) CountCategoriesByFamilyID(ctx context.Context, familyID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countCategoriesByFamilyID, familyID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createCategory = `-- name: CreateCategory :one
 INSERT INTO categories (
     family_id, name, icon, color, kind, parent_id
@@ -126,4 +138,49 @@ func (q *Queries) ListCategoriesByFamilyID(ctx context.Context, familyID uuid.UU
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateCategory = `-- name: UpdateCategory :one
+UPDATE categories
+SET name = $3,
+    icon = $4,
+    color = $5,
+    kind = $6,
+    parent_id = $7
+WHERE id = $1 AND family_id = $2
+RETURNING id, family_id, name, icon, color, kind, parent_id, created_at
+`
+
+type UpdateCategoryParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	Name     string
+	Icon     *string
+	Color    *string
+	Kind     string
+	ParentID *uuid.UUID
+}
+
+func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
+	row := q.db.QueryRow(ctx, updateCategory,
+		arg.ID,
+		arg.FamilyID,
+		arg.Name,
+		arg.Icon,
+		arg.Color,
+		arg.Kind,
+		arg.ParentID,
+	)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.Name,
+		&i.Icon,
+		&i.Color,
+		&i.Kind,
+		&i.ParentID,
+		&i.CreatedAt,
+	)
+	return i, err
 }

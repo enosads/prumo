@@ -141,6 +141,36 @@ func (q *Queries) GetCreditCardByID(ctx context.Context, arg GetCreditCardByIDPa
 	return i, err
 }
 
+const getCreditCardInvoiceByID = `-- name: GetCreditCardInvoiceByID :one
+SELECT id, credit_card_id, family_id, period_year, period_month, closing_date, due_date, total_amount_cents, paid_amount_cents, status, created_at, updated_at FROM credit_card_invoices
+WHERE id = $1 AND family_id = $2
+`
+
+type GetCreditCardInvoiceByIDParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+}
+
+func (q *Queries) GetCreditCardInvoiceByID(ctx context.Context, arg GetCreditCardInvoiceByIDParams) (CreditCardInvoice, error) {
+	row := q.db.QueryRow(ctx, getCreditCardInvoiceByID, arg.ID, arg.FamilyID)
+	var i CreditCardInvoice
+	err := row.Scan(
+		&i.ID,
+		&i.CreditCardID,
+		&i.FamilyID,
+		&i.PeriodYear,
+		&i.PeriodMonth,
+		&i.ClosingDate,
+		&i.DueDate,
+		&i.TotalAmountCents,
+		&i.PaidAmountCents,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getCreditCardInvoiceByPeriod = `-- name: GetCreditCardInvoiceByPeriod :one
 SELECT id, credit_card_id, family_id, period_year, period_month, closing_date, due_date, total_amount_cents, paid_amount_cents, status, created_at, updated_at FROM credit_card_invoices
 WHERE credit_card_id = $1 AND period_year = $2 AND period_month = $3
@@ -265,4 +295,174 @@ func (q *Queries) ListCreditCardsByFamilyID(ctx context.Context, familyID uuid.U
 		return nil, err
 	}
 	return items, nil
+}
+
+const listFutureInstallmentsByCardID = `-- name: ListFutureInstallmentsByCardID :many
+SELECT t.id, t.family_id, t.account_id, t.category_id, t.created_by_user_id, t.target_user_id, t.kind, t.amount_cents, t.description, t.transacted_at, t.status, t.credit_card_invoice_id, t.installment_number, t.installment_total, t.installment_group_id, t.tags, t.notes, t.created_at, t.updated_at, cci.period_year, cci.period_month, cci.due_date, u.full_name as author_name, tu.full_name as target_name
+FROM transactions t
+JOIN credit_card_invoices cci ON cci.id = t.credit_card_invoice_id
+JOIN credit_cards cc ON cc.id = cci.credit_card_id
+JOIN users u ON u.id = t.created_by_user_id
+LEFT JOIN users tu ON tu.id = t.target_user_id
+WHERE cc.id = $1 AND t.family_id = $2 AND (cci.period_year > $3 OR (cci.period_year = $3 AND cci.period_month >= $4))
+ORDER BY cci.period_year ASC, cci.period_month ASC, t.transacted_at ASC
+`
+
+type ListFutureInstallmentsByCardIDParams struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	PeriodYear  int16
+	PeriodMonth int16
+}
+
+type ListFutureInstallmentsByCardIDRow struct {
+	ID                  uuid.UUID
+	FamilyID            uuid.UUID
+	AccountID           uuid.UUID
+	CategoryID          *uuid.UUID
+	CreatedByUserID     uuid.UUID
+	TargetUserID        *uuid.UUID
+	Kind                string
+	AmountCents         int64
+	Description         string
+	TransactedAt        time.Time
+	Status              string
+	CreditCardInvoiceID *uuid.UUID
+	InstallmentNumber   *int16
+	InstallmentTotal    *int16
+	InstallmentGroupID  *uuid.UUID
+	Tags                []string
+	Notes               *string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	PeriodYear          int16
+	PeriodMonth         int16
+	DueDate             time.Time
+	AuthorName          string
+	TargetName          *string
+}
+
+func (q *Queries) ListFutureInstallmentsByCardID(ctx context.Context, arg ListFutureInstallmentsByCardIDParams) ([]ListFutureInstallmentsByCardIDRow, error) {
+	rows, err := q.db.Query(ctx, listFutureInstallmentsByCardID,
+		arg.ID,
+		arg.FamilyID,
+		arg.PeriodYear,
+		arg.PeriodMonth,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFutureInstallmentsByCardIDRow{}
+	for rows.Next() {
+		var i ListFutureInstallmentsByCardIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.AccountID,
+			&i.CategoryID,
+			&i.CreatedByUserID,
+			&i.TargetUserID,
+			&i.Kind,
+			&i.AmountCents,
+			&i.Description,
+			&i.TransactedAt,
+			&i.Status,
+			&i.CreditCardInvoiceID,
+			&i.InstallmentNumber,
+			&i.InstallmentTotal,
+			&i.InstallmentGroupID,
+			&i.Tags,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.PeriodYear,
+			&i.PeriodMonth,
+			&i.DueDate,
+			&i.AuthorName,
+			&i.TargetName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateCreditCardInvoicePaid = `-- name: UpdateCreditCardInvoicePaid :one
+UPDATE credit_card_invoices
+SET paid_amount_cents = paid_amount_cents + $3,
+    status = $4,
+    updated_at = now()
+WHERE id = $1 AND family_id = $2
+RETURNING id, credit_card_id, family_id, period_year, period_month, closing_date, due_date, total_amount_cents, paid_amount_cents, status, created_at, updated_at
+`
+
+type UpdateCreditCardInvoicePaidParams struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	PaidAmountCents int64
+	Status          string
+}
+
+func (q *Queries) UpdateCreditCardInvoicePaid(ctx context.Context, arg UpdateCreditCardInvoicePaidParams) (CreditCardInvoice, error) {
+	row := q.db.QueryRow(ctx, updateCreditCardInvoicePaid,
+		arg.ID,
+		arg.FamilyID,
+		arg.PaidAmountCents,
+		arg.Status,
+	)
+	var i CreditCardInvoice
+	err := row.Scan(
+		&i.ID,
+		&i.CreditCardID,
+		&i.FamilyID,
+		&i.PeriodYear,
+		&i.PeriodMonth,
+		&i.ClosingDate,
+		&i.DueDate,
+		&i.TotalAmountCents,
+		&i.PaidAmountCents,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateCreditCardInvoiceTotals = `-- name: UpdateCreditCardInvoiceTotals :one
+UPDATE credit_card_invoices
+SET total_amount_cents = $3,
+    updated_at = now()
+WHERE id = $1 AND family_id = $2
+RETURNING id, credit_card_id, family_id, period_year, period_month, closing_date, due_date, total_amount_cents, paid_amount_cents, status, created_at, updated_at
+`
+
+type UpdateCreditCardInvoiceTotalsParams struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	TotalAmountCents int64
+}
+
+func (q *Queries) UpdateCreditCardInvoiceTotals(ctx context.Context, arg UpdateCreditCardInvoiceTotalsParams) (CreditCardInvoice, error) {
+	row := q.db.QueryRow(ctx, updateCreditCardInvoiceTotals, arg.ID, arg.FamilyID, arg.TotalAmountCents)
+	var i CreditCardInvoice
+	err := row.Scan(
+		&i.ID,
+		&i.CreditCardID,
+		&i.FamilyID,
+		&i.PeriodYear,
+		&i.PeriodMonth,
+		&i.ClosingDate,
+		&i.DueDate,
+		&i.TotalAmountCents,
+		&i.PaidAmountCents,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
