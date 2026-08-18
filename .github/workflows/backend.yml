@@ -1,0 +1,73 @@
+name: backend
+
+on:
+  push:
+    branches: [main]
+    paths: ["backend/**", "scripts/**", ".github/workflows/backend.yml"]
+  pull_request:
+    paths: ["backend/**", "scripts/**", ".github/workflows/backend.yml"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: prumo
+          POSTGRES_PASSWORD: prumo_ci_test_password
+          POSTGRES_DB: prumo
+        ports: ["5434:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6380:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Go Vet
+        run: go vet ./...
+
+      - name: Validar consultas com Postgres (sqlc-prepare)
+        run: go run ./cmd/sqlcprepare -migrate
+        env:
+          DATABASE_URL: postgres://prumo:prumo_ci_test_password@localhost:5434/prumo?sslmode=disable
+
+      - name: Testes Unitários com Race Detector
+        run: go test ./... -race
+
+      - name: Build do Backend
+        run: go build ./...
+
+      - name: Smoke Test E2E
+        run: |
+          PORT=8085 go run ./cmd/server &
+          SERVER_PID=$!
+          sleep 3
+          cd ..
+          ./scripts/smoke.sh
+          kill $SERVER_PID
+        env:
+          PORT: 8085
+          ENV: test
+          DATABASE_URL: postgres://prumo:prumo_ci_test_password@localhost:5434/prumo?sslmode=disable
+          REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: prumo-ci-super-secret-jwt-key-32-chars-minimum
