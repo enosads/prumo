@@ -1,0 +1,21 @@
+# Go
+backend/bin/
+backend/.env
+*.exe
+*.test
+*.out
+
+# iOS / Xcode / Swift
+ios/.build/
+ios/DerivedData/
+ios/DerivedData-device/
+ios/DerivedDataDevice/
+ios/*.xcodeproj/
+*.xcworkspace/
+*.xcuserdatad/
+*.DS_Store
+
+# Database & temp
+*.log
+scratch/
+tmp/
