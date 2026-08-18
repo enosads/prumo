@@ -1,0 +1,1292 @@
+{
+    "components": {
+        "schemas": {
+            "Account": {
+                "additionalProperties": false,
+                "properties": {
+                    "Color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "Currency": {
+                        "type": "string"
+                    },
+                    "CurrentBalanceCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "InitialBalanceCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "IsArchived": {
+                        "type": "boolean"
+                    },
+                    "Kind": {
+                        "type": "string"
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "OwnerUserID": {
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "Visibility": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "OwnerUserID",
+                    "Name",
+                    "Kind",
+                    "Visibility",
+                    "Currency",
+                    "InitialBalanceCents",
+                    "CurrentBalanceCents",
+                    "Color",
+                    "IsArchived",
+                    "CreatedAt",
+                    "UpdatedAt"
+                ],
+                "type": "object"
+            },
+            "AuthResponseOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/AuthResponseOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "access_token": {
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "refresh_token": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/AuthUserJSON"
+                    }
+                },
+                "required": [
+                    "user",
+                    "access_token",
+                    "refresh_token",
+                    "expires_at"
+                ],
+                "type": "object"
+            },
+            "AuthUserJSON": {
+                "additionalProperties": false,
+                "properties": {
+                    "avatar_url": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "family_id": {
+                        "type": "string"
+                    },
+                    "full_name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "email",
+                    "full_name"
+                ],
+                "type": "object"
+            },
+            "CreateAccountInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateAccountInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "color": {
+                        "description": "Cor hexadecimal para UI (ex: #820AD1)",
+                        "type": "string"
+                    },
+                    "currency": {
+                        "default": "BRL",
+                        "description": "Moeda",
+                        "type": "string"
+                    },
+                    "initial_balance_cents": {
+                        "default": 0,
+                        "description": "Saldo inicial em centavos",
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "kind": {
+                        "description": "Tipo da conta",
+                        "enum": [
+                            "checking",
+                            "savings",
+                            "investment",
+                            "cash",
+                            "credit_card"
+                        ],
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Nome da conta (ex: Nubank, Ita\u00fa Corrente)",
+                        "minLength": 2,
+                        "type": "string"
+                    },
+                    "visibility": {
+                        "default": "shared",
+                        "description": "Visibilidade (compartilhada ou privada)",
+                        "enum": [
+                            "shared",
+                            "private"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "kind",
+                    "visibility",
+                    "currency",
+                    "initial_balance_cents"
+                ],
+                "type": "object"
+            },
+            "CreateAccountOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateAccountOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "account": {
+                        "$ref": "#/components/schemas/Account"
+                    }
+                },
+                "required": [
+                    "account"
+                ],
+                "type": "object"
+            },
+            "CreateFamilyInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateFamilyInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "base_currency": {
+                        "default": "BRL",
+                        "description": "Moeda base (BRL, USD)",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Nome do n\u00facleo familiar",
+                        "minLength": 2,
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "base_currency"
+                ],
+                "type": "object"
+            },
+            "CreateFamilyOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateFamilyOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "family": {
+                        "$ref": "#/components/schemas/Family"
+                    }
+                },
+                "required": [
+                    "family"
+                ],
+                "type": "object"
+            },
+            "ErrorDetail": {
+                "additionalProperties": false,
+                "properties": {
+                    "location": {
+                        "description": "Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'",
+                        "type": "string"
+                    },
+                    "message": {
+                        "description": "Error message text",
+                        "type": "string"
+                    },
+                    "value": {
+                        "description": "The value at the given location"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorModel": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ErrorModel.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "detail": {
+                        "description": "A human-readable explanation specific to this occurrence of the problem.",
+                        "examples": [
+                            "Property foo is required but is missing."
+                        ],
+                        "type": "string"
+                    },
+                    "errors": {
+                        "description": "Optional list of individual error details",
+                        "items": {
+                            "$ref": "#/components/schemas/ErrorDetail"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "instance": {
+                        "description": "A URI reference that identifies the specific occurrence of the problem.",
+                        "examples": [
+                            "https://example.com/error-log/abc123"
+                        ],
+                        "format": "uri",
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "HTTP status code",
+                        "examples": [
+                            400
+                        ],
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "title": {
+                        "description": "A short, human-readable summary of the problem type. This value should not change between occurrences of the error.",
+                        "examples": [
+                            "Bad Request"
+                        ],
+                        "type": "string"
+                    },
+                    "type": {
+                        "default": "about:blank",
+                        "description": "A URI reference to human-readable documentation for the error.",
+                        "examples": [
+                            "https://example.com/errors/example"
+                        ],
+                        "format": "uri",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "Family": {
+                "additionalProperties": false,
+                "properties": {
+                    "BaseCurrency": {
+                        "type": "string"
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "Name",
+                    "BaseCurrency",
+                    "CreatedAt",
+                    "UpdatedAt"
+                ],
+                "type": "object"
+            },
+            "FamilyInvitation": {
+                "additionalProperties": false,
+                "properties": {
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "Email": {
+                        "type": "string"
+                    },
+                    "ExpiresAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "InviteCode": {
+                        "type": "string"
+                    },
+                    "InvitedByUserID": {
+                        "type": "string"
+                    },
+                    "Role": {
+                        "type": "string"
+                    },
+                    "Status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "InvitedByUserID",
+                    "Email",
+                    "Role",
+                    "InviteCode",
+                    "Status",
+                    "ExpiresAt",
+                    "CreatedAt"
+                ],
+                "type": "object"
+            },
+            "HealthOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/HealthOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "env": {
+                        "examples": [
+                            "development"
+                        ],
+                        "type": "string"
+                    },
+                    "status": {
+                        "examples": [
+                            "ok"
+                        ],
+                        "type": "string"
+                    },
+                    "version": {
+                        "examples": [
+                            "1.0.0"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status",
+                    "version",
+                    "env"
+                ],
+                "type": "object"
+            },
+            "InviteMemberInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/InviteMemberInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "email": {
+                        "description": "E-mail da pessoa convidada",
+                        "format": "email",
+                        "type": "string"
+                    },
+                    "role": {
+                        "default": "member",
+                        "description": "Papel atribu\u00eddo",
+                        "enum": [
+                            "admin",
+                            "member",
+                            "viewer"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email",
+                    "role"
+                ],
+                "type": "object"
+            },
+            "InviteMemberOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/InviteMemberOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "invitation": {
+                        "$ref": "#/components/schemas/FamilyInvitation"
+                    }
+                },
+                "required": [
+                    "invitation"
+                ],
+                "type": "object"
+            },
+            "ListAccountsByFamilyIDRow": {
+                "additionalProperties": false,
+                "properties": {
+                    "Color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "Currency": {
+                        "type": "string"
+                    },
+                    "CurrentBalanceCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "InitialBalanceCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "IsArchived": {
+                        "type": "boolean"
+                    },
+                    "Kind": {
+                        "type": "string"
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "OwnerName": {
+                        "type": "string"
+                    },
+                    "OwnerUserID": {
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "Visibility": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "OwnerUserID",
+                    "Name",
+                    "Kind",
+                    "Visibility",
+                    "Currency",
+                    "InitialBalanceCents",
+                    "CurrentBalanceCents",
+                    "Color",
+                    "IsArchived",
+                    "CreatedAt",
+                    "UpdatedAt",
+                    "OwnerName"
+                ],
+                "type": "object"
+            },
+            "ListAccountsOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListAccountsOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "accounts": {
+                        "items": {
+                            "$ref": "#/components/schemas/ListAccountsByFamilyIDRow"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "accounts"
+                ],
+                "type": "object"
+            },
+            "ListFamiliesByUserIDRow": {
+                "additionalProperties": false,
+                "properties": {
+                    "BaseCurrency": {
+                        "type": "string"
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "Nickname": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Role": {
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "Name",
+                    "BaseCurrency",
+                    "CreatedAt",
+                    "UpdatedAt",
+                    "Role",
+                    "Nickname"
+                ],
+                "type": "object"
+            },
+            "ListFamiliesOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListFamiliesOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "families": {
+                        "items": {
+                            "$ref": "#/components/schemas/ListFamiliesByUserIDRow"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "families"
+                ],
+                "type": "object"
+            },
+            "ListFamilyMembersRow": {
+                "additionalProperties": false,
+                "properties": {
+                    "AvatarUrl": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Email": {
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "FullName": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "JoinedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "Nickname": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Role": {
+                        "type": "string"
+                    },
+                    "UserID": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "UserID",
+                    "Role",
+                    "Nickname",
+                    "JoinedAt",
+                    "Email",
+                    "FullName",
+                    "AvatarUrl"
+                ],
+                "type": "object"
+            },
+            "ListMembersOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListMembersOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "members": {
+                        "items": {
+                            "$ref": "#/components/schemas/ListFamilyMembersRow"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "members"
+                ],
+                "type": "object"
+            },
+            "LoginInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/LoginInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "email": {
+                        "description": "Endere\u00e7o de e-mail",
+                        "format": "email",
+                        "type": "string"
+                    },
+                    "password": {
+                        "description": "Senha",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "type": "object"
+            },
+            "MeOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/MeOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "families": {
+                        "items": {
+                            "$ref": "#/components/schemas/ListFamiliesByUserIDRow"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/AuthUserJSON"
+                    }
+                },
+                "required": [
+                    "user",
+                    "families"
+                ],
+                "type": "object"
+            },
+            "RegisterInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/RegisterInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "email": {
+                        "description": "Endere\u00e7o de e-mail do usu\u00e1rio",
+                        "format": "email",
+                        "type": "string"
+                    },
+                    "family_name": {
+                        "description": "Nome do n\u00facleo familiar inicial (opcional)",
+                        "type": "string"
+                    },
+                    "full_name": {
+                        "description": "Nome completo",
+                        "minLength": 2,
+                        "type": "string"
+                    },
+                    "password": {
+                        "description": "Senha de acesso",
+                        "minLength": 6,
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email",
+                    "full_name",
+                    "password"
+                ],
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "bearerFormat": "JWT",
+                "description": "Token JWT emitido no login ou registro.",
+                "scheme": "bearer",
+                "type": "http"
+            }
+        }
+    },
+    "info": {
+        "description": "API do ecossistema Prumo de Gest\u00e3o Financeira Familiar com IA Ag\u00eantica.",
+        "title": "Prumo API",
+        "version": "1.0.0"
+    },
+    "openapi": "3.1.0",
+    "paths": {
+        "/health": {
+            "get": {
+                "operationId": "getHealth",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "summary": "Verifica\u00e7\u00e3o de integridade da API",
+                "tags": [
+                    "Sistema"
+                ]
+            }
+        },
+        "/v1/accounts": {
+            "get": {
+                "operationId": "listAccounts",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListAccountsOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista as contas financeiras do n\u00facleo familiar ativo",
+                "tags": [
+                    "Contas"
+                ]
+            },
+            "post": {
+                "operationId": "createAccount",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAccountInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateAccountOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Cria uma conta financeira no n\u00facleo familiar",
+                "tags": [
+                    "Contas"
+                ]
+            }
+        },
+        "/v1/auth/login": {
+            "post": {
+                "operationId": "loginUser",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthResponseOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "summary": "Autentica\u00e7\u00e3o de usu\u00e1rio por e-mail e senha",
+                "tags": [
+                    "Autentica\u00e7\u00e3o"
+                ]
+            }
+        },
+        "/v1/auth/me": {
+            "get": {
+                "operationId": "getMe",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MeOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Dados do usu\u00e1rio logado e seus n\u00facleos familiares",
+                "tags": [
+                    "Autentica\u00e7\u00e3o"
+                ]
+            }
+        },
+        "/v1/auth/register": {
+            "post": {
+                "operationId": "registerUser",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthResponseOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "summary": "Cadastro de novo usu\u00e1rio com cria\u00e7\u00e3o autom\u00e1tica do n\u00facleo familiar",
+                "tags": [
+                    "Autentica\u00e7\u00e3o"
+                ]
+            }
+        },
+        "/v1/families": {
+            "get": {
+                "operationId": "listFamilies",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListFamiliesOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista os n\u00facleos familiares do usu\u00e1rio logado",
+                "tags": [
+                    "Fam\u00edlias"
+                ]
+            },
+            "post": {
+                "operationId": "createFamily",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateFamilyInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateFamilyOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Cria um novo n\u00facleo familiar",
+                "tags": [
+                    "Fam\u00edlias"
+                ]
+            }
+        },
+        "/v1/families/{id}/invitations": {
+            "post": {
+                "operationId": "inviteFamilyMember",
+                "parameters": [
+                    {
+                        "description": "ID do n\u00facleo familiar",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do n\u00facleo familiar",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InviteMemberInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InviteMemberOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Gera convite para adicionar membro ao n\u00facleo familiar",
+                "tags": [
+                    "Fam\u00edlias"
+                ]
+            }
+        },
+        "/v1/families/{id}/members": {
+            "get": {
+                "operationId": "listFamilyMembers",
+                "parameters": [
+                    {
+                        "description": "ID do n\u00facleo familiar",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do n\u00facleo familiar",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListMembersOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista os membros de um n\u00facleo familiar",
+                "tags": [
+                    "Fam\u00edlias"
+                ]
+            }
+        }
+    }
+}
