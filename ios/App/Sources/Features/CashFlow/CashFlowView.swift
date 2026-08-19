@@ -56,27 +56,53 @@ public struct CashFlowView: View {
                 }
                 .background(Brand.surface)
                 
+                if let err = errorMessage {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(Brand.expense)
+                        Text(err)
+                            .font(.caption)
+                            .foregroundColor(Brand.expense)
+                        Spacer()
+                        Button("Tentar novamente") {
+                            Task { await loadTransactions() }
+                        }
+                        .font(.caption.bold())
+                        .foregroundColor(Brand.primary)
+                    }
+                    .padding(12)
+                    .background(Brand.surface)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                }
+                
                 // Lista de Transações agrupadas por data
                 if isLoading && transactions.isEmpty {
                     Spacer()
                     ProgressView()
                     Spacer()
                 } else if filteredTransactions.isEmpty {
-                    Spacer()
-                    VStack(spacing: 12) {
-                        Image(systemName: "tray.fill")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
-                        Text("Nenhum lançamento encontrado")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        Text("Toque em '+' para registrar uma nova movimentação.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            Spacer(minLength: 60)
+                            Image(systemName: "tray.fill")
+                                .font(.system(size: 48))
+                                .foregroundColor(.secondary)
+                            Text("Nenhum lançamento encontrado")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                            Text("Toque em '+' para registrar uma nova movimentação ou puxe para atualizar.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    Spacer()
+                    .refreshable {
+                        await loadTransactions()
+                    }
                 } else {
                     List {
                         ForEach(groupedTransactions.keys.sorted(by: >), id: \.self) { dateKey in
@@ -121,6 +147,9 @@ public struct CashFlowView: View {
                     await loadTransactions()
                     await loadMembers()
                 }
+            }
+            .onChange(of: selectedMemberID) { _, _ in
+                Task { await loadTransactions() }
             }
         }
     }

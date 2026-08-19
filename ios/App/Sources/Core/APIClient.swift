@@ -37,17 +37,33 @@ public actor APIClient {
         self.session = URLSession(configuration: config)
         
         let dec = JSONDecoder()
-        let formatterWithFrac = ISO8601DateFormatter()
-        formatterWithFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let formatterWithoutFrac = ISO8601DateFormatter()
-        formatterWithoutFrac.formatOptions = [.withInternetDateTime]
-        
         dec.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateStr = try container.decode(String.self)
-            if let date = formatterWithFrac.date(from: dateStr) ?? formatterWithoutFrac.date(from: dateStr) {
+            
+            let fFrac = ISO8601DateFormatter()
+            fFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = fFrac.date(from: dateStr) {
                 return date
             }
+            
+            let fStd = ISO8601DateFormatter()
+            fStd.formatOptions = [.withInternetDateTime]
+            if let date = fStd.date(from: dateStr) {
+                return date
+            }
+            
+            let df = DateFormatter()
+            df.locale = Locale(identifier: "en_US_POSIX")
+            df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ"
+            if let date = df.date(from: dateStr) {
+                return date
+            }
+            df.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+            if let date = df.date(from: dateStr) {
+                return date
+            }
+            
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Data inválida: \(dateStr)")
         }
         self.decoder = dec
