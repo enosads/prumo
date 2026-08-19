@@ -17,6 +17,7 @@ type Config struct {
 	AnthropicAPIKey            string
 	OpenAIAPIKey               string
 	GeminiAPIKey               string
+	GeminiModel                string
 	APNSKeyID                  string
 	APNSTeamID                 string
 	APNSBundleID               string
@@ -36,6 +37,7 @@ func Load() *Config {
 		AnthropicAPIKey:            os.Getenv("ANTHROPIC_API_KEY"),
 		OpenAIAPIKey:               os.Getenv("OPENAI_API_KEY"),
 		GeminiAPIKey:               os.Getenv("GEMINI_API_KEY"),
+		GeminiModel:                getEnv("GEMINI_MODEL", "gemini-2.5-flash"),
 		APNSKeyID:                  os.Getenv("APNS_KEY_ID"),
 		APNSTeamID:                 os.Getenv("APNS_TEAM_ID"),
 		APNSBundleID:               getEnv("APNS_BUNDLE_ID", "dev.enosads.prumo"),

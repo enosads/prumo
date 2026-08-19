@@ -34,9 +34,13 @@ func NewCopilot(
 		providers = append(providers, llm.NewOpenAIProvider(cfg.OpenAIAPIKey, "gpt-4o"))
 	}
 
-	// 3. Provedor Google Gemini
+	// 3. Provedor Google Gemini (Versão mais recente Flash)
 	if cfg.GeminiAPIKey != "" {
-		providers = append(providers, llm.NewGeminiProvider(cfg.GeminiAPIKey, "gemini-2.0-flash"))
+		gemModel := cfg.GeminiModel
+		if gemModel == "" {
+			gemModel = "gemini-2.5-flash"
+		}
+		providers = append(providers, llm.NewGeminiProvider(cfg.GeminiAPIKey, gemModel))
 	}
 
 	// 4. Provedor Fallback / Mock sempre disponível

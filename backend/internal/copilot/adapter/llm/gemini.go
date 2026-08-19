@@ -22,7 +22,7 @@ type GeminiProvider struct {
 
 func NewGeminiProvider(apiKey, model string) *GeminiProvider {
 	if model == "" {
-		model = "gemini-2.0-flash"
+		model = "gemini-2.5-flash"
 	}
 	return &GeminiProvider{
 		apiKey: apiKey,
@@ -34,7 +34,7 @@ func NewGeminiProvider(apiKey, model string) *GeminiProvider {
 }
 
 func (g *GeminiProvider) Name() string {
-	return "gemini"
+	return fmt.Sprintf("gemini (%s)", g.model)
 }
 
 type geminiPart struct {
@@ -85,54 +85,70 @@ func (g *GeminiProvider) Chat(ctx context.Context, systemPrompt string, messages
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", g.model, g.apiKey)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
+	modelsToTry := []string{g.model, "gemini-2.5-flash", "gemini-2.0-flash"}
+	var lastErr error
 
-	resp, err := g.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		b, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("gemini error (%d): %s", resp.StatusCode, string(b))
-	}
-
-	var res struct {
-		Candidates []struct {
-			Content struct {
-				Parts []geminiPart `json:"parts"`
-			} `json:"content"`
-		} `json:"candidates"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return nil, err
-	}
-
-	if len(res.Candidates) == 0 {
-		return &LLMResponse{}, nil
-	}
-
-	out := &LLMResponse{}
-	for _, part := range res.Candidates[0].Content.Parts {
-		if part.Text != "" {
-			out.Content += part.Text
+	for _, modelName := range uniqueStrings(modelsToTry) {
+		url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", modelName, g.apiKey)
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
+		if err != nil {
+			return nil, err
 		}
-		if part.FunctionCall != nil {
-			out.ToolCalls = append(out.ToolCalls, domain.ToolCall{
-				ID:        fmt.Sprintf("call_%d", time.Now().UnixNano()),
-				Name:      part.FunctionCall.Name,
-				Arguments: part.FunctionCall.Args,
-			})
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := g.httpClient.Do(req)
+		if err != nil {
+			lastErr = err
+			continue
 		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			resp.Body.Close()
+			lastErr = fmt.Errorf("modelo %s não encontrado", modelName)
+			continue
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			return nil, fmt.Errorf("gemini error (%d): %s", resp.StatusCode, string(b))
+		}
+
+		var res struct {
+			Candidates []struct {
+				Content struct {
+					Parts []geminiPart `json:"parts"`
+				} `json:"content"`
+			} `json:"candidates"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+			resp.Body.Close()
+			return nil, err
+		}
+		resp.Body.Close()
+
+		if len(res.Candidates) == 0 {
+			return &LLMResponse{}, nil
+		}
+
+		out := &LLMResponse{}
+		for _, part := range res.Candidates[0].Content.Parts {
+			if part.Text != "" {
+				out.Content += part.Text
+			}
+			if part.FunctionCall != nil {
+				out.ToolCalls = append(out.ToolCalls, domain.ToolCall{
+					ID:        fmt.Sprintf("call_%d", time.Now().UnixNano()),
+					Name:      part.FunctionCall.Name,
+					Arguments: part.FunctionCall.Args,
+				})
+			}
+		}
+
+		return out, nil
 	}
 
-	return out, nil
+	return nil, lastErr
 }
 
 func (g *GeminiProvider) StreamChat(ctx context.Context, systemPrompt string, messages []LLMMessage, tools []domain.ToolDefinition, textChunkChan chan<- string) (*LLMResponse, error) {
@@ -146,74 +162,90 @@ func (g *GeminiProvider) StreamChat(ctx context.Context, systemPrompt string, me
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:streamGenerateContent?alt=sse&key=%s", g.model, g.apiKey)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
+	modelsToTry := []string{g.model, "gemini-2.5-flash", "gemini-2.0-flash"}
+	var lastErr error
 
-	resp, err := g.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		b, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("gemini stream error (%d): %s", resp.StatusCode, string(b))
-	}
-
-	reader := bufio.NewReader(resp.Body)
-	out := &LLMResponse{}
-
-	for {
-		line, err := reader.ReadString('\n')
+	for _, modelName := range uniqueStrings(modelsToTry) {
+		url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:streamGenerateContent?alt=sse&key=%s", modelName, g.apiKey)
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
 			return nil, err
 		}
-		line = strings.TrimSpace(line)
-		if !strings.HasPrefix(line, "data: ") {
-			continue
-		}
-		data := strings.TrimPrefix(line, "data: ")
+		req.Header.Set("Content-Type", "application/json")
 
-		var chunk struct {
-			Candidates []struct {
-				Content struct {
-					Parts []geminiPart `json:"parts"`
-				} `json:"content"`
-			} `json:"candidates"`
-		}
-		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+		resp, err := g.httpClient.Do(req)
+		if err != nil {
+			lastErr = err
 			continue
 		}
 
-		if len(chunk.Candidates) == 0 {
+		if resp.StatusCode == http.StatusNotFound {
+			resp.Body.Close()
+			lastErr = fmt.Errorf("modelo %s não encontrado", modelName)
 			continue
 		}
 
-		for _, part := range chunk.Candidates[0].Content.Parts {
-			if part.Text != "" {
-				out.Content += part.Text
-				if textChunkChan != nil {
-					textChunkChan <- part.Text
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			return nil, fmt.Errorf("gemini stream error (%d): %s", resp.StatusCode, string(b))
+		}
+
+		reader := bufio.NewReader(resp.Body)
+		out := &LLMResponse{}
+
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				resp.Body.Close()
+				return nil, err
+			}
+			line = strings.TrimSpace(line)
+			if !strings.HasPrefix(line, "data: ") {
+				continue
+			}
+			data := strings.TrimPrefix(line, "data: ")
+
+			var chunk struct {
+				Candidates []struct {
+					Content struct {
+						Parts []geminiPart `json:"parts"`
+					} `json:"content"`
+				} `json:"candidates"`
+			}
+			if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+				continue
+			}
+
+			if len(chunk.Candidates) == 0 {
+				continue
+			}
+
+			for _, part := range chunk.Candidates[0].Content.Parts {
+				if part.Text != "" {
+					out.Content += part.Text
+					if textChunkChan != nil {
+						textChunkChan <- part.Text
+					}
+				}
+				if part.FunctionCall != nil {
+					out.ToolCalls = append(out.ToolCalls, domain.ToolCall{
+						ID:        fmt.Sprintf("call_%d", time.Now().UnixNano()),
+						Name:      part.FunctionCall.Name,
+						Arguments: part.FunctionCall.Args,
+					})
 				}
 			}
-			if part.FunctionCall != nil {
-				out.ToolCalls = append(out.ToolCalls, domain.ToolCall{
-					ID:        fmt.Sprintf("call_%d", time.Now().UnixNano()),
-					Name:      part.FunctionCall.Name,
-					Arguments: part.FunctionCall.Args,
-				})
-			}
 		}
+
+		resp.Body.Close()
+		return out, nil
 	}
 
-	return out, nil
+	return nil, lastErr
 }
 
 func (g *GeminiProvider) buildRequest(systemPrompt string, messages []LLMMessage, tools []domain.ToolDefinition) geminiRequest {
@@ -272,4 +304,16 @@ func (g *GeminiProvider) buildRequest(systemPrompt string, messages []LLMMessage
 	}
 
 	return req
+}
+
+func uniqueStrings(slice []string) []string {
+	seen := make(map[string]bool)
+	var out []string
+	for _, s := range slice {
+		if s != "" && !seen[s] {
+			seen[s] = true
+			out = append(out, s)
+		}
+	}
+	return out
 }
