@@ -24,23 +24,23 @@ func NewCopilot(
 ) domain.CopilotPort {
 	var providers []llm.LLMProvider
 
-	// 1. Provedor Anthropic Claude
-	if cfg.AnthropicAPIKey != "" {
-		providers = append(providers, llm.NewAnthropicProvider(cfg.AnthropicAPIKey, "claude-3-5-sonnet-20241022"))
-	}
-
-	// 2. Provedor OpenAI GPT-4o
-	if cfg.OpenAIAPIKey != "" {
-		providers = append(providers, llm.NewOpenAIProvider(cfg.OpenAIAPIKey, "gpt-4o"))
-	}
-
-	// 3. Provedor Google Gemini (Versão mais recente Flash)
+	// 1. Provedor Google Gemini (Versão mais recente Flash)
 	if cfg.GeminiAPIKey != "" {
 		gemModel := cfg.GeminiModel
 		if gemModel == "" {
 			gemModel = "gemini-2.5-flash"
 		}
 		providers = append(providers, llm.NewGeminiProvider(cfg.GeminiAPIKey, gemModel))
+	}
+
+	// 2. Provedor Anthropic Claude
+	if cfg.AnthropicAPIKey != "" {
+		providers = append(providers, llm.NewAnthropicProvider(cfg.AnthropicAPIKey, "claude-3-5-sonnet-20241022"))
+	}
+
+	// 3. Provedor OpenAI GPT-4o
+	if cfg.OpenAIAPIKey != "" {
+		providers = append(providers, llm.NewOpenAIProvider(cfg.OpenAIAPIKey, "gpt-4o"))
 	}
 
 	// 4. Provedor Fallback / Mock sempre disponível

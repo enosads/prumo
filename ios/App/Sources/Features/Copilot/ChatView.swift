@@ -7,7 +7,6 @@ public struct ChatView: View {
     @State private var isStreaming: Bool = false
     @State private var activeToolCall: String?
     @State private var errorMessage: String?
-    @State private var useAppleIntelligenceOnDevice: Bool = true
     @FocusState private var isInputFocused: Bool
     
     private let suggestions = [
@@ -22,7 +21,7 @@ public struct ChatView: View {
     public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                engineBanner
+                modelHeader
                 
                 if messages.isEmpty {
                     emptyStateView
@@ -45,29 +44,6 @@ public struct ChatView: View {
             .navigationBarTitleDisplayMode(.inline)
             .scrollDismissesKeyboard(.interactively)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Menu {
-                        Button(action: { useAppleIntelligenceOnDevice = true }) {
-                            Label("Apple Intelligence (On-Device)", systemImage: useAppleIntelligenceOnDevice ? "checkmark" : "brain.head.profile")
-                        }
-                        Button(action: { useAppleIntelligenceOnDevice = false }) {
-                            Label("Cloud Multi-LLM (Claude/GPT-4o)", systemImage: !useAppleIntelligenceOnDevice ? "checkmark" : "cloud.fill")
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: useAppleIntelligenceOnDevice ? "sparkles" : "cloud.fill")
-                                .font(.caption.weight(.bold))
-                            Text(useAppleIntelligenceOnDevice ? "On-Device" : "Cloud")
-                                .font(.caption.weight(.semibold))
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(useAppleIntelligenceOnDevice ? Brand.primary.opacity(0.12) : Color.blue.opacity(0.12))
-                        .foregroundStyle(useAppleIntelligenceOnDevice ? Brand.primary : Color.blue)
-                        .clipShape(Capsule())
-                    }
-                }
-                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: resetConversation) {
                         Image(systemName: "square.and.pencil")
@@ -88,20 +64,26 @@ public struct ChatView: View {
         }
     }
     
-    // MARK: - Engine Banner
+    // MARK: - Model Header
     
-    private var engineBanner: some View {
+    private var modelHeader: some View {
         HStack(spacing: 6) {
-            Image(systemName: useAppleIntelligenceOnDevice ? "sparkles" : "cloud.fill")
-                .font(.caption2)
-            Text(useAppleIntelligenceOnDevice ? "Apple Intelligence On-Device • Privacidade Total & ANE" : "Servidor Cloud • Gemini Flash / Claude 3.5")
+            Image(systemName: "sparkles")
+                .font(.caption2.weight(.bold))
+            Text("Gemini 2.5 Flash • Respostas Generativas em Tempo Real")
                 .font(.caption2.weight(.medium))
             Spacer()
+            Circle()
+                .fill(Color.green)
+                .frame(width: 6, height: 6)
+            Text("Online")
+                .font(.caption2)
+                .foregroundStyle(Color.secondary)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
-        .background(useAppleIntelligenceOnDevice ? Brand.primary.opacity(0.08) : Color.blue.opacity(0.08))
-        .foregroundStyle(useAppleIntelligenceOnDevice ? Brand.primary : Color.blue)
+        .background(Brand.primary.opacity(0.08))
+        .foregroundStyle(Brand.primary)
     }
     
     // MARK: - Empty State
@@ -125,7 +107,7 @@ public struct ChatView: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(Color.primary)
                     
-                    Text("Faça perguntas sobre suas contas, extratos, orçamentos e cartões em linguagem natural.")
+                    Text("Faça perguntas em linguagem natural sobre finanças, investimentos, fluxo de caixa e orçamentos.")
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
                         .multilineTextAlignment(.center)
@@ -133,7 +115,7 @@ public struct ChatView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Sugestões rápidas")
+                    Text("Sugestões para iniciar")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Color.secondary)
                         .textCase(.uppercase)
@@ -398,21 +380,11 @@ public struct ChatView: View {
         
         Task {
             do {
-                let stream: AsyncThrowingStream<AIChatStreamDelta, Error>
-                
-                if useAppleIntelligenceOnDevice {
-                    stream = await OnDeviceCopilotEngine.shared.processMessage(
-                        message: text,
-                        conversationID: conversationID ?? UUID(),
-                        token: token
-                    )
-                } else {
-                    stream = APIClient.shared.streamAIChat(
-                        conversationID: conversationID,
-                        message: text,
-                        token: token
-                    )
-                }
+                let stream = APIClient.shared.streamAIChat(
+                    conversationID: conversationID,
+                    message: text,
+                    token: token
+                )
                 
                 for try await delta in stream {
                     await MainActor.run {
