@@ -219,7 +219,7 @@ public struct SetBudgetItemSheet: View {
         )
         
         do {
-            let _: [String: AnyCodable] = try await APIClient.shared.request(
+            try await APIClient.shared.send(
                 "/v1/budgets/\(budgetID)/items",
                 method: "PUT",
                 body: payload,

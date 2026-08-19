@@ -357,6 +357,19 @@ public struct NewTransactionSheet: View {
         return f.string(from: NSNumber(value: part)) ?? "R$ 0,00"
     }
     
+    private struct CreateAccountPayload: Codable {
+        let name: String
+        let kind: String
+        let visibility: String
+        let currency: String
+        let initial_balance_cents: Int64
+        let color: String
+    }
+    
+    private struct CreateAccountResponse: Codable {
+        let account: Account
+    }
+    
     private func loadDependencies() async {
         guard let token = AuthSession.shared.accessToken else { return }
         isLoading = true
@@ -367,12 +380,36 @@ public struct NewTransactionSheet: View {
             async let catReq: CategoriesResponse = APIClient.shared.request("/v1/categories", token: token)
             
             let (accRes, catRes) = try await (accReq, catReq)
-            self.accounts = accRes.accounts
-            self.categories = catRes.categories
             
-            if selectedAccountID == nil, let first = accRes.accounts.first {
-                self.selectedAccountID = first.id
+            if accRes.accounts.isEmpty {
+                let initialAccount = CreateAccountPayload(
+                    name: "Conta Principal",
+                    kind: "checking",
+                    visibility: "shared",
+                    currency: "BRL",
+                    initial_balance_cents: 0,
+                    color: "#007AFF"
+                )
+                do {
+                    let created: CreateAccountResponse = try await APIClient.shared.request(
+                        "/v1/accounts",
+                        method: "POST",
+                        body: initialAccount,
+                        token: token
+                    )
+                    self.accounts = [created.account]
+                    self.selectedAccountID = created.account.id
+                } catch {
+                    self.accounts = []
+                }
+            } else {
+                self.accounts = accRes.accounts
+                if selectedAccountID == nil, let first = accRes.accounts.first {
+                    self.selectedAccountID = first.id
+                }
             }
+            
+            self.categories = catRes.categories
             if selectedCategoryID == nil, let firstCat = catRes.categories.first {
                 self.selectedCategoryID = firstCat.id
             }
@@ -388,7 +425,10 @@ public struct NewTransactionSheet: View {
     
     private func saveTransaction() async {
         guard let token = AuthSession.shared.accessToken,
-              let accID = selectedAccountID else { return }
+              let accID = selectedAccountID else {
+            self.errorMessage = "Selecione uma conta para registrar a transação."
+            return
+        }
         
         isSaving = true
         defer { isSaving = false }
@@ -412,7 +452,7 @@ public struct NewTransactionSheet: View {
         )
         
         do {
-            let _: [String: AnyCodable] = try await APIClient.shared.request(
+            try await APIClient.shared.send(
                 "/v1/transactions",
                 method: "POST",
                 body: payload,
@@ -434,9 +474,4 @@ public struct NewTransactionSheet: View {
         case .creditCard: "creditcard.fill"
         }
     }
-}
-
-public struct AnyCodable: Codable, Sendable {
-    public init(from decoder: Decoder) throws {}
-    public func encode(to encoder: Encoder) throws {}
 }

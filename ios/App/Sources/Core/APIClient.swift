@@ -57,12 +57,37 @@ public actor APIClient {
         self.encoder = enc
     }
     
+    public func send(
+        _ path: String,
+        method: String = "POST",
+        body: (any Encodable)? = nil,
+        token: String? = nil
+    ) async throws {
+        _ = try await rawDataRequest(path, method: method, body: body, token: token)
+    }
+    
     public func request<T: Decodable>(
         _ path: String,
         method: String = "GET",
         body: (any Encodable)? = nil,
         token: String? = nil
     ) async throws -> T {
+        let data = try await rawDataRequest(path, method: method, body: body, token: token)
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            let jsonStr = String(data: data, encoding: .utf8) ?? ""
+            print("❌ Erro de decodificação em '\(path)': \(error). JSON: \(jsonStr)")
+            throw APIError.decoding(error)
+        }
+    }
+    
+    private func rawDataRequest(
+        _ path: String,
+        method: String = "GET",
+        body: (any Encodable)? = nil,
+        token: String? = nil
+    ) async throws -> Data {
         let url = baseURL.appendingPathComponent(path)
         var req = URLRequest(url: url)
         req.httpMethod = method
@@ -95,10 +120,6 @@ public actor APIClient {
             throw APIError.server(code: "\(http.statusCode)", message: "Erro HTTP \(http.statusCode)")
         }
         
-        do {
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            throw APIError.decoding(error)
-        }
+        return data
     }
 }

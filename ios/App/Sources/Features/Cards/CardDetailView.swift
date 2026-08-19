@@ -374,7 +374,7 @@ public struct CardDetailView: View {
         )
         
         do {
-            let _: [String: AnyCodable] = try await APIClient.shared.request(
+            try await APIClient.shared.send(
                 "/v1/cards/\(cardSummary.card.id)/invoices/\(inv.id)/pay",
                 method: "POST",
                 body: payload,

@@ -278,7 +278,7 @@ public struct AnticipateInstallmentsSheet: View {
         )
         
         do {
-            let _: [String: AnyCodable] = try await APIClient.shared.request(
+            try await APIClient.shared.send(
                 "/v1/cards/\(cardID)/installments/anticipate/apply",
                 method: "POST",
                 body: payload,
