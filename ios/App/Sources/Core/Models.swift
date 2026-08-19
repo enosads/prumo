@@ -143,19 +143,23 @@ public struct Category: Codable, Identifiable, Sendable, Hashable {
     public let id: UUID
     public let familyID: UUID
     public let name: String
+    public let slug: String?
     public let icon: String?
     public let color: String?
     public let kind: CategoryKind
     public let parentID: UUID?
+    public let systemOnly: Bool?
     
     enum CodingKeys: String, CodingKey {
         case id = "ID"
         case familyID = "FamilyID"
         case name = "Name"
+        case slug = "Slug"
         case icon = "Icon"
         case color = "Color"
         case kind = "Kind"
         case parentID = "ParentID"
+        case systemOnly = "SystemOnly"
     }
 }
 
@@ -438,3 +442,115 @@ public struct BudgetResponse: Codable, Sendable {
     public let items: [BudgetItemDetail]
     public let summary: BudgetSummaryData
 }
+
+// MARK: - Copilot de IA & Agente Financeiro
+
+public enum AIMessageRole: String, Codable, Sendable {
+    case user
+    case assistant
+    case system
+    case tool
+}
+
+public struct AIToolCallInfo: Codable, Sendable, Identifiable {
+    public let id: String
+    public let name: String
+    public let arguments: String?
+}
+
+public struct AIToolResultInfo: Codable, Sendable, Identifiable {
+    public var id: String { toolCallID }
+    public let toolCallID: String
+    public let toolName: String
+    public let result: String?
+    public let error: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case toolCallID = "tool_call_id"
+        case toolName = "tool_name"
+        case result
+        case error
+    }
+}
+
+public struct AIChatMessage: Codable, Identifiable, Sendable {
+    public let id: UUID
+    public let conversationID: UUID
+    public let role: AIMessageRole
+    public var content: String
+    public var toolCalls: [AIToolCallInfo]?
+    public var toolCallID: String?
+    public let createdAt: Date
+    public var isStreaming: Bool = false
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "ID"
+        case conversationID = "ConversationID"
+        case role = "Role"
+        case content = "Content"
+        case toolCalls = "ToolCalls"
+        case toolCallID = "ToolCallID"
+        case createdAt = "CreatedAt"
+    }
+    
+    public init(
+        id: UUID = UUID(),
+        conversationID: UUID,
+        role: AIMessageRole,
+        content: String,
+        toolCalls: [AIToolCallInfo]? = nil,
+        toolCallID: String? = nil,
+        createdAt: Date = Date(),
+        isStreaming: Bool = false
+    ) {
+        self.id = id
+        self.conversationID = conversationID
+        self.role = role
+        self.content = content
+        self.toolCalls = toolCalls
+        self.toolCallID = toolCallID
+        self.createdAt = createdAt
+        self.isStreaming = isStreaming
+    }
+}
+
+public struct AIConversationSummary: Codable, Identifiable, Sendable {
+    public let id: UUID
+    public let familyID: UUID
+    public let userID: UUID
+    public let title: String
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "ID"
+        case familyID = "FamilyID"
+        case userID = "UserID"
+        case title = "Title"
+        case createdAt = "CreatedAt"
+        case updatedAt = "UpdatedAt"
+    }
+}
+
+public struct AIChatStreamDelta: Codable, Sendable {
+    public let type: String
+    public let conversationID: UUID?
+    public let messageID: UUID?
+    public let delta: String?
+    public let fullText: String?
+    public let toolCall: AIToolCallInfo?
+    public let toolResult: AIToolResultInfo?
+    public let error: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case type
+        case conversationID = "conversation_id"
+        case messageID = "message_id"
+        case delta
+        case fullText = "full_text"
+        case toolCall = "tool_call"
+        case toolResult = "tool_result"
+        case error
+    }
+}
+

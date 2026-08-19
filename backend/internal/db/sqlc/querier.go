@@ -42,6 +42,7 @@ type Querier interface {
 	GetBudgetByID(ctx context.Context, arg GetBudgetByIDParams) (Budget, error)
 	GetBudgetByPeriod(ctx context.Context, arg GetBudgetByPeriodParams) (Budget, error)
 	GetCategoryByID(ctx context.Context, arg GetCategoryByIDParams) (Category, error)
+	GetCategoryBySlug(ctx context.Context, arg GetCategoryBySlugParams) (Category, error)
 	GetCategorySpendingForPeriod(ctx context.Context, arg GetCategorySpendingForPeriodParams) ([]GetCategorySpendingForPeriodRow, error)
 	GetCreditCardByAccountID(ctx context.Context, arg GetCreditCardByAccountIDParams) (CreditCard, error)
 	GetCreditCardByID(ctx context.Context, arg GetCreditCardByIDParams) (CreditCard, error)
@@ -72,6 +73,7 @@ type Querier interface {
 	ListTransactionsByFamilyIDWithFilters(ctx context.Context, arg ListTransactionsByFamilyIDWithFiltersParams) ([]ListTransactionsByFamilyIDWithFiltersRow, error)
 	ListTransactionsByInstallmentGroupID(ctx context.Context, arg ListTransactionsByInstallmentGroupIDParams) ([]ListTransactionsByInstallmentGroupIDRow, error)
 	ListTransactionsByInvoiceID(ctx context.Context, arg ListTransactionsByInvoiceIDParams) ([]ListTransactionsByInvoiceIDRow, error)
+	ListVisibleCategoriesByFamilyID(ctx context.Context, familyID uuid.UUID) ([]Category, error)
 	RegisterUserDevice(ctx context.Context, arg RegisterUserDeviceParams) (UserDevice, error)
 	RevokeRefreshToken(ctx context.Context, tokenHash string) error
 	UpdateAIToolExecutionStatus(ctx context.Context, arg UpdateAIToolExecutionStatusParams) (AiToolExecution, error)

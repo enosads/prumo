@@ -1,6 +1,6 @@
 # Fatia Atual — Fase 2: Agente de IA Nativo & Taxonomia Enriquecida
 
-> **Status**: Em Planejamento / Kick-off · **Fase**: 2 · **Data de Início**: 2026-08-18  
+> **Status**: Concluída · **Fase**: 2 (Fatia 2.1) · **Data de Início**: 2026-08-18 · **Data de Conclusão**: 2026-08-18  
 > **Referências**: [ADR-0001](file:///Users/enosads/www/personal/prumo/docs/adr/0001-fundacao-e-stack.md), [ADR-0002](file:///Users/enosads/www/personal/prumo/docs/adr/0002-taxonomy-and-copilot-alignment.md), [Especificação do Copilot](file:///Users/enosads/www/personal/prumo/docs/05-copilot-spec.md)
 
 ---

@@ -144,4 +144,64 @@ public actor APIClient {
         
         return data
     }
+    
+    public func streamAIChat(
+        conversationID: UUID? = nil,
+        message: String,
+        token: String
+    ) -> AsyncThrowingStream<AIChatStreamDelta, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    let url = buildURL(for: "/v1/ai/chat/stream")
+                    var req = URLRequest(url: url)
+                    req.httpMethod = "POST"
+                    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    req.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+                    req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                    
+                    var bodyDict: [String: Any] = ["message": message]
+                    if let convID = conversationID {
+                        bodyDict["conversation_id"] = convID.uuidString
+                    }
+                    req.httpBody = try JSONSerialization.data(withJSONObject: bodyDict)
+                    
+                    let (asyncBytes, response) = try await session.bytes(for: req)
+                    
+                    guard let http = response as? HTTPURLResponse else {
+                        throw APIError.network(URLError(.badServerResponse))
+                    }
+                    
+                    if http.statusCode == 401 {
+                        throw APIError.unauthorized(message: "Sessão expirada ou credenciais inválidas.")
+                    }
+                    
+                    if http.statusCode >= 400 {
+                        throw APIError.server(code: "\(http.statusCode)", message: "Erro HTTP \(http.statusCode)")
+                    }
+                    
+                    for try await line in asyncBytes.lines {
+                        if Task.isCancelled { break }
+                        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if trimmed.hasPrefix("data: ") {
+                            let dataStr = String(trimmed.dropFirst(6))
+                            if dataStr == "[DONE]" { break }
+                            if let data = dataStr.data(using: .utf8) {
+                                if let delta = try? self.decoder.decode(AIChatStreamDelta.self, from: data) {
+                                    continuation.yield(delta)
+                                }
+                            }
+                        }
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { @Sendable _ in
+                task.cancel()
+            }
+        }
+    }
 }
+

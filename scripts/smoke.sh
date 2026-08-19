@@ -563,7 +563,193 @@ if [ "${HTTP_CODE}" -ne 400 ]; then
 fi
 echo "OK (400)"
 
+# ============================================================================
+# FASE 2: FATIA 2.1 — TAXONOMIA CALENDS & COPILOT DE IA
+# ============================================================================
+
+# 27. Validar Slugs da Taxonomia Calends (13 Raízes + uncategorized)
+echo -n "27. Validando slugs da taxonomia Calends (ADR-0002)... "
+TAX_RESP=$(curl -s -w "\n%{http_code}" -X GET "${BASE_URL}/v1/categories" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}")
+HTTP_CODE=$(echo "${TAX_RESP}" | tail -n1)
+BODY=$(echo "${TAX_RESP}" | sed '$d')
+if [ "${HTTP_CODE}" -ne 200 ]; then
+    echo "FALHOU (HTTP ${HTTP_CODE})"
+    echo "${BODY}"
+    exit 1
+fi
+if ! echo "${BODY}" | grep -q '"Slug":"food"'; then
+    echo "FALHOU: Slug 'food' não encontrado na taxonomia"
+    echo "${BODY}"
+    exit 1
+fi
+if ! echo "${BODY}" | grep -q '"Slug":"housing"'; then
+    echo "FALHOU: Slug 'housing' não encontrado na taxonomia"
+    echo "${BODY}"
+    exit 1
+fi
+echo "OK (13 raízes semânticas validadas)"
+
+# 28. Copilot: Saudação Inicial e Criação de Conversa
+echo -n "28. Enviando saudação inicial ao Copilot de IA... "
+CHAT_PAYLOAD=$(cat <<EOF
+{
+  "message": "Olá! Gostaria de ajuda para organizar as contas da minha família."
+}
+EOF
+)
+CHAT1_RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/v1/ai/chat" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d "${CHAT_PAYLOAD}")
+HTTP_CODE=$(echo "${CHAT1_RESP}" | tail -n1)
+BODY=$(echo "${CHAT1_RESP}" | sed '$d')
+if [ "${HTTP_CODE}" -ne 200 ]; then
+    echo "FALHOU (HTTP ${HTTP_CODE})"
+    echo "${BODY}"
+    exit 1
+fi
+CONV_ID=$(echo "${BODY}" | grep -oiE '"(conversation_id|conversationid)":"[^"]*' | head -n1 | cut -d'"' -f4)
+if [ -z "${CONV_ID}" ]; then
+    echo "FALHOU: Conversation ID não retornado"
+    echo "${BODY}"
+    exit 1
+fi
+echo "OK (Conversation ID: ${CONV_ID})"
+
+# 29. Copilot: Consulta de Patrimônio Líquido Consolidado (Tool: get_consolidated_net_worth)
+echo -n "29. Copilot Tool: Consulta de Patrimônio Líquido Consolidado... "
+CHAT_NW_PAYLOAD=$(cat <<EOF
+{
+  "conversation_id": "${CONV_ID}",
+  "message": "Qual é o meu saldo consolidado e patrimônio líquido da família?"
+}
+EOF
+)
+CHAT_NW_RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/v1/ai/chat" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d "${CHAT_NW_PAYLOAD}")
+HTTP_CODE=$(echo "${CHAT_NW_RESP}" | tail -n1)
+BODY=$(echo "${CHAT_NW_RESP}" | sed '$d')
+if [ "${HTTP_CODE}" -ne 200 ]; then
+    echo "FALHOU (HTTP ${HTTP_CODE})"
+    echo "${BODY}"
+    exit 1
+fi
+if ! echo "${BODY}" | grep -qi "patrimônio"; then
+    echo "FALHOU: Resposta não contém síntese de patrimônio"
+    echo "${BODY}"
+    exit 1
+fi
+echo "OK"
+
+# 30. Copilot: Consulta de Extrato & Fluxo de Caixa (Tool: query_cash_flow)
+echo -n "30. Copilot Tool: Consulta de Extrato & Fluxo de Caixa... "
+CHAT_CF_PAYLOAD=$(cat <<EOF
+{
+  "conversation_id": "${CONV_ID}",
+  "message": "Quanto gastei este mês com alimentação?"
+}
+EOF
+)
+CHAT_CF_RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/v1/ai/chat" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d "${CHAT_CF_PAYLOAD}")
+HTTP_CODE=$(echo "${CHAT_CF_RESP}" | tail -n1)
+BODY=$(echo "${CHAT_CF_RESP}" | sed '$d')
+if [ "${HTTP_CODE}" -ne 200 ]; then
+    echo "FALHOU (HTTP ${HTTP_CODE})"
+    echo "${BODY}"
+    exit 1
+fi
+echo "OK"
+
+# 31. Copilot: Consulta de Envelopes de Orçamento (Tool: get_budget_status)
+echo -n "31. Copilot Tool: Consulta de Envelopes de Orçamento... "
+CHAT_BG_PAYLOAD=$(cat <<EOF
+{
+  "conversation_id": "${CONV_ID}",
+  "message": "Como estão os envelopes de orçamento e o Livre para Investir?"
+}
+EOF
+)
+CHAT_BG_RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/v1/ai/chat" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d "${CHAT_BG_PAYLOAD}")
+HTTP_CODE=$(echo "${CHAT_BG_RESP}" | tail -n1)
+BODY=$(echo "${CHAT_BG_RESP}" | sed '$d')
+if [ "${HTTP_CODE}" -ne 200 ]; then
+    echo "FALHOU (HTTP ${HTTP_CODE})"
+    echo "${BODY}"
+    exit 1
+fi
+echo "OK"
+
+# 32. Copilot: Consulta de Projeção de Cartões (Tool: get_card_projections)
+echo -n "32. Copilot Tool: Consulta de Projeção de Cartões... "
+CHAT_CP_PAYLOAD=$(cat <<EOF
+{
+  "conversation_id": "${CONV_ID}",
+  "message": "Qual é a projeção das faturas dos meus cartões de crédito?"
+}
+EOF
+)
+CHAT_CP_RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/v1/ai/chat" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d "${CHAT_CP_PAYLOAD}")
+HTTP_CODE=$(echo "${CHAT_CP_RESP}" | tail -n1)
+BODY=$(echo "${CHAT_CP_RESP}" | sed '$d')
+if [ "${HTTP_CODE}" -ne 200 ]; then
+    echo "FALHOU (HTTP ${HTTP_CODE})"
+    echo "${BODY}"
+    exit 1
+fi
+echo "OK"
+
+# 33. Listar Conversas do Copilot
+echo -n "33. Listando histórico de conversas do Copilot... "
+LIST_CONV_RESP=$(curl -s -w "\n%{http_code}" -X GET "${BASE_URL}/v1/ai/conversations" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}")
+HTTP_CODE=$(echo "${LIST_CONV_RESP}" | tail -n1)
+BODY=$(echo "${LIST_CONV_RESP}" | sed '$d')
+if [ "${HTTP_CODE}" -ne 200 ]; then
+    echo "FALHOU (HTTP ${HTTP_CODE})"
+    echo "${BODY}"
+    exit 1
+fi
+echo "OK"
+
+# 34. Listar Mensagens da Conversa
+echo -n "34. Listando mensagens da conversa ${CONV_ID}... "
+LIST_MSG_RESP=$(curl -s -w "\n%{http_code}" -X GET "${BASE_URL}/v1/ai/conversations/${CONV_ID}/messages" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}")
+HTTP_CODE=$(echo "${LIST_MSG_RESP}" | tail -n1)
+BODY=$(echo "${LIST_MSG_RESP}" | sed '$d')
+if [ "${HTTP_CODE}" -ne 200 ]; then
+    echo "FALHOU (HTTP ${HTTP_CODE})"
+    echo "${BODY}"
+    exit 1
+fi
+echo "OK"
+
+# 35. Teste de Sabotagem: Chat sem autenticação (deve ser 401)
+echo -n "35. Teste de Sabotagem: Chat de IA sem token (deve ser 401)... "
+SAB_CHAT_RESP=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/v1/ai/chat" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"teste sem token"}')
+HTTP_CODE=$(echo "${SAB_CHAT_RESP}" | tail -n1)
+if [ "${HTTP_CODE}" -ne 401 ]; then
+    echo "FALHOU (Esperava 401, recebeu ${HTTP_CODE})"
+    exit 1
+fi
+echo "OK (401)"
+
 echo "=================================================="
-echo "🎉 TODOS OS 26 SMOKE TESTS PASSARAM COM SUCESSO!"
+echo "🎉 TODOS OS 35 SMOKE TESTS PASSARAM COM SUCESSO!"
 echo "=================================================="
+
 
