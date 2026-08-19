@@ -24,7 +24,7 @@ public actor APIClient {
     #if DEBUG
     public var baseURL = URL(string: "http://localhost:8085")!
     #else
-    public var baseURL = URL(string: "https://api.prumo.app")!
+    public var baseURL = URL(string: "https://prumo-backend.fly.dev")!
     #endif
     
     private let session: URLSession

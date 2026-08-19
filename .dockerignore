@@ -1,0 +1,7 @@
+ios/
+android/
+.git/
+docs/
+.gemini/
+*.xcodeproj
+DerivedData
