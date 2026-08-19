@@ -1,6 +1,78 @@
 {
     "components": {
         "schemas": {
+            "AIConversation": {
+                "additionalProperties": false,
+                "properties": {
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "Title": {
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "UserID": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "UserID",
+                    "Title",
+                    "CreatedAt",
+                    "UpdatedAt"
+                ],
+                "type": "object"
+            },
+            "AIMessage": {
+                "additionalProperties": false,
+                "properties": {
+                    "Content": {
+                        "type": "string"
+                    },
+                    "ConversationID": {
+                        "type": "string"
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "Role": {
+                        "type": "string"
+                    },
+                    "ToolCallID": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "ToolCalls": {}
+                },
+                "required": [
+                    "ID",
+                    "ConversationID",
+                    "Role",
+                    "Content",
+                    "ToolCalls",
+                    "ToolCallID",
+                    "CreatedAt"
+                ],
+                "type": "object"
+            },
             "Account": {
                 "additionalProperties": false,
                 "properties": {
@@ -433,6 +505,15 @@
                     },
                     "ParentID": {
                         "type": "string"
+                    },
+                    "Slug": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "SystemOnly": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -443,7 +524,9 @@
                     "Color",
                     "Kind",
                     "ParentID",
-                    "CreatedAt"
+                    "CreatedAt",
+                    "Slug",
+                    "SystemOnly"
                 ],
                 "type": "object"
             },
@@ -568,6 +651,15 @@
                     "parent_id": {
                         "description": "ID da categoria pai para hierarquia",
                         "type": "string"
+                    },
+                    "slug": {
+                        "description": "Slug can\u00f4nico em ingl\u00eas (ex: food, housing)",
+                        "type": "string"
+                    },
+                    "system_only": {
+                        "default": false,
+                        "description": "Indica se \u00e9 de uso exclusivo do sistema (ex: uncategorized)",
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -1512,6 +1604,60 @@
                 },
                 "required": [
                     "invitation"
+                ],
+                "type": "object"
+            },
+            "ListAIConversationsOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListAIConversationsOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "conversations": {
+                        "items": {
+                            "$ref": "#/components/schemas/AIConversation"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "conversations"
+                ],
+                "type": "object"
+            },
+            "ListAIMessagesOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListAIMessagesOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "messages": {
+                        "items": {
+                            "$ref": "#/components/schemas/AIMessage"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "messages"
                 ],
                 "type": "object"
             },
@@ -2528,6 +2674,67 @@
                 ],
                 "type": "object"
             },
+            "SendChatMessageInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/SendChatMessageInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "conversation_id": {
+                        "description": "ID da conversa existente ou omita para criar uma nova",
+                        "type": "string"
+                    },
+                    "message": {
+                        "description": "Mensagem ou comando em linguagem natural",
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "stream": {
+                        "default": false,
+                        "description": "Indica se deve responder s\u00edncrono ou via streaming SSE",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "message"
+                ],
+                "type": "object"
+            },
+            "SendChatMessageOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/SendChatMessageOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "conversation_id": {
+                        "type": "string"
+                    },
+                    "message_id": {
+                        "type": "string"
+                    },
+                    "response": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "conversation_id",
+                    "message_id",
+                    "response"
+                ],
+                "type": "object"
+            },
             "SimulateAnticipationInputBody": {
                 "additionalProperties": false,
                 "properties": {
@@ -2892,6 +3099,136 @@
                 "summary": "Cria uma conta financeira no n\u00facleo familiar",
                 "tags": [
                     "Contas"
+                ]
+            }
+        },
+        "/v1/ai/chat": {
+            "post": {
+                "operationId": "sendAIChatMessage",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SendChatMessageInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SendChatMessageOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Envia uma mensagem para o Copilot de IA financeiro",
+                "tags": [
+                    "Copilot de IA"
+                ]
+            }
+        },
+        "/v1/ai/conversations": {
+            "get": {
+                "operationId": "listAIConversations",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListAIConversationsOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista as conversas recentes do Copilot no n\u00facleo familiar",
+                "tags": [
+                    "Copilot de IA"
+                ]
+            }
+        },
+        "/v1/ai/conversations/{id}/messages": {
+            "get": {
+                "operationId": "listAIMessages",
+                "parameters": [
+                    {
+                        "description": "ID da conversa",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID da conversa",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListAIMessagesOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista o hist\u00f3rico de mensagens de uma conversa com o Copilot",
+                "tags": [
+                    "Copilot de IA"
                 ]
             }
         },

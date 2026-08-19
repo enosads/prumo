@@ -30,6 +30,7 @@ func (s *Server) Router() http.Handler {
 	s.registerTransactionRoutes(api)
 	s.registerCardRoutes(api)
 	s.registerBudgetRoutes(api)
+	s.registerAIRoutes(api, r)
 
 	return r
 }

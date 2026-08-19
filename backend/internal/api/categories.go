@@ -13,11 +13,13 @@ import (
 
 type CreateCategoryInput struct {
 	Body struct {
-		Name     string     `json:"name" minLength:"2" doc:"Nome da categoria (ex: Alimentação, Moradia)"`
-		Icon     *string    `json:"icon,omitempty" doc:"Nome do ícone SF Symbols (ex: cart.fill, house.fill)"`
-		Color    *string    `json:"color,omitempty" doc:"Cor hexadecimal para UI (ex: #FF9500)"`
-		Kind     string     `json:"kind,omitempty" enum:"income,expense,both" default:"expense" doc:"Tipo da categoria"`
-		ParentID *uuid.UUID `json:"parent_id,omitempty" doc:"ID da categoria pai para hierarquia"`
+		Name       string     `json:"name" minLength:"2" doc:"Nome da categoria (ex: Alimentação, Moradia)"`
+		Slug       *string    `json:"slug,omitempty" doc:"Slug canônico em inglês (ex: food, housing)"`
+		Icon       *string    `json:"icon,omitempty" doc:"Nome do ícone SF Symbols (ex: cart.fill, house.fill)"`
+		Color      *string    `json:"color,omitempty" doc:"Cor hexadecimal para UI (ex: #FF9500)"`
+		Kind       string     `json:"kind,omitempty" enum:"income,expense,both" default:"expense" doc:"Tipo da categoria"`
+		ParentID   *uuid.UUID `json:"parent_id,omitempty" doc:"ID da categoria pai para hierarquia"`
+		SystemOnly *bool      `json:"system_only,omitempty" default:"false" doc:"Indica se é de uso exclusivo do sistema (ex: uncategorized)"`
 	}
 }
 
@@ -35,27 +37,6 @@ type ListCategoriesOutput struct {
 
 type DeleteCategoryInput struct {
 	ID uuid.UUID `path:"id" doc:"ID da categoria a ser excluída"`
-}
-
-type defaultCategorySeed struct {
-	name  string
-	icon  string
-	color string
-	kind  string
-}
-
-var defaultCategories = []defaultCategorySeed{
-	{name: "Alimentação & Mercado", icon: "cart.fill", color: "#FF9500", kind: "expense"},
-	{name: "Moradia & Contas", icon: "house.fill", color: "#007AFF", kind: "expense"},
-	{name: "Transporte", icon: "car.fill", color: "#5856D6", kind: "expense"},
-	{name: "Saúde & Farmácia", icon: "heart.fill", color: "#FF2D55", kind: "expense"},
-	{name: "Lazer & Restaurantes", icon: "fork.knife", color: "#AF52DE", kind: "expense"},
-	{name: "Educação", icon: "book.fill", color: "#34C759", kind: "expense"},
-	{name: "Assinaturas & Serviços", icon: "play.tv.fill", color: "#5AC8FA", kind: "expense"},
-	{name: "Outros Gastos", icon: "ellipsis.circle.fill", color: "#8E8E93", kind: "expense"},
-	{name: "Salário & Proventos", icon: "banknote.fill", color: "#34C759", kind: "income"},
-	{name: "Rendimentos & Investimentos", icon: "chart.line.uptrend.xyaxis", color: "#30B0C7", kind: "income"},
-	{name: "Outras Receitas", icon: "plus.circle.fill", color: "#34C759", kind: "income"},
 }
 
 func (s *Server) registerCategoryRoutes(api huma.API) {
@@ -81,13 +62,20 @@ func (s *Server) registerCategoryRoutes(api huma.API) {
 			kind = "expense"
 		}
 
+		systemOnly := false
+		if input.Body.SystemOnly != nil {
+			systemOnly = *input.Body.SystemOnly
+		}
+
 		category, err := s.db.CreateCategory(ctx, sqlc.CreateCategoryParams{
-			FamilyID: *uCtx.FamilyID,
-			Name:     input.Body.Name,
-			Icon:     input.Body.Icon,
-			Color:    input.Body.Color,
-			Kind:     kind,
-			ParentID: input.Body.ParentID,
+			FamilyID:   *uCtx.FamilyID,
+			Name:       input.Body.Name,
+			Icon:       input.Body.Icon,
+			Color:      input.Body.Color,
+			Kind:       kind,
+			ParentID:   input.Body.ParentID,
+			Slug:       input.Body.Slug,
+			SystemOnly: systemOnly,
 		})
 		if err != nil {
 			return nil, httpErrorInternal("Erro ao criar categoria")
@@ -111,20 +99,9 @@ func (s *Server) registerCategoryRoutes(api huma.API) {
 			return nil, err
 		}
 
-		// Verifica se a família possui categorias; se não, faz seed inicial das categorias padrão
-		count, err := s.db.CountCategoriesByFamilyID(ctx, *uCtx.FamilyID)
-		if err == nil && count == 0 {
-			for _, def := range defaultCategories {
-				icon := def.icon
-				color := def.color
-				_, _ = s.db.CreateCategory(ctx, sqlc.CreateCategoryParams{
-					FamilyID: *uCtx.FamilyID,
-					Name:     def.name,
-					Icon:     &icon,
-					Color:    &color,
-					Kind:     def.kind,
-				})
-			}
+		// Garante que a família possui as 13 categorias raízes + uncategorized (ADR-0002)
+		if err := s.ledger.EnsureSeedCategories(ctx, *uCtx.FamilyID); err != nil {
+			s.log.Printf("[Categorias] Erro ao semear categorias: %v", err)
 		}
 
 		categories, err := s.db.ListCategoriesByFamilyID(ctx, *uCtx.FamilyID)

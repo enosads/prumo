@@ -31,6 +31,12 @@ public struct MainTabView: View {
                     Label("Orçamento", systemImage: "envelope.badge.fill")
                 }
                 .tag(3)
+            
+            ChatView()
+                .tabItem {
+                    Label("Copilot", systemImage: "sparkles")
+                }
+                .tag(4)
         }
         .tint(Brand.primary)
     }

@@ -25,20 +25,22 @@ func (q *Queries) CountCategoriesByFamilyID(ctx context.Context, familyID uuid.U
 
 const createCategory = `-- name: CreateCategory :one
 INSERT INTO categories (
-    family_id, name, icon, color, kind, parent_id
+    family_id, name, icon, color, kind, parent_id, slug, system_only
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7, $8
 )
-RETURNING id, family_id, name, icon, color, kind, parent_id, created_at
+RETURNING id, family_id, name, icon, color, kind, parent_id, created_at, slug, system_only
 `
 
 type CreateCategoryParams struct {
-	FamilyID uuid.UUID
-	Name     string
-	Icon     *string
-	Color    *string
-	Kind     string
-	ParentID *uuid.UUID
+	FamilyID   uuid.UUID
+	Name       string
+	Icon       *string
+	Color      *string
+	Kind       string
+	ParentID   *uuid.UUID
+	Slug       *string
+	SystemOnly bool
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
@@ -49,6 +51,8 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 		arg.Color,
 		arg.Kind,
 		arg.ParentID,
+		arg.Slug,
+		arg.SystemOnly,
 	)
 	var i Category
 	err := row.Scan(
@@ -60,6 +64,8 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 		&i.Kind,
 		&i.ParentID,
 		&i.CreatedAt,
+		&i.Slug,
+		&i.SystemOnly,
 	)
 	return i, err
 }
@@ -80,7 +86,7 @@ func (q *Queries) DeleteCategory(ctx context.Context, arg DeleteCategoryParams) 
 }
 
 const getCategoryByID = `-- name: GetCategoryByID :one
-SELECT id, family_id, name, icon, color, kind, parent_id, created_at FROM categories
+SELECT id, family_id, name, icon, color, kind, parent_id, created_at, slug, system_only FROM categories
 WHERE id = $1 AND family_id = $2
 `
 
@@ -101,12 +107,42 @@ func (q *Queries) GetCategoryByID(ctx context.Context, arg GetCategoryByIDParams
 		&i.Kind,
 		&i.ParentID,
 		&i.CreatedAt,
+		&i.Slug,
+		&i.SystemOnly,
+	)
+	return i, err
+}
+
+const getCategoryBySlug = `-- name: GetCategoryBySlug :one
+SELECT id, family_id, name, icon, color, kind, parent_id, created_at, slug, system_only FROM categories
+WHERE family_id = $1 AND slug = $2
+`
+
+type GetCategoryBySlugParams struct {
+	FamilyID uuid.UUID
+	Slug     *string
+}
+
+func (q *Queries) GetCategoryBySlug(ctx context.Context, arg GetCategoryBySlugParams) (Category, error) {
+	row := q.db.QueryRow(ctx, getCategoryBySlug, arg.FamilyID, arg.Slug)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.Name,
+		&i.Icon,
+		&i.Color,
+		&i.Kind,
+		&i.ParentID,
+		&i.CreatedAt,
+		&i.Slug,
+		&i.SystemOnly,
 	)
 	return i, err
 }
 
 const listCategoriesByFamilyID = `-- name: ListCategoriesByFamilyID :many
-SELECT id, family_id, name, icon, color, kind, parent_id, created_at FROM categories
+SELECT id, family_id, name, icon, color, kind, parent_id, created_at, slug, system_only FROM categories
 WHERE family_id = $1
 ORDER BY name ASC
 `
@@ -129,6 +165,45 @@ func (q *Queries) ListCategoriesByFamilyID(ctx context.Context, familyID uuid.UU
 			&i.Kind,
 			&i.ParentID,
 			&i.CreatedAt,
+			&i.Slug,
+			&i.SystemOnly,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listVisibleCategoriesByFamilyID = `-- name: ListVisibleCategoriesByFamilyID :many
+SELECT id, family_id, name, icon, color, kind, parent_id, created_at, slug, system_only FROM categories
+WHERE family_id = $1 AND system_only = FALSE
+ORDER BY name ASC
+`
+
+func (q *Queries) ListVisibleCategoriesByFamilyID(ctx context.Context, familyID uuid.UUID) ([]Category, error) {
+	rows, err := q.db.Query(ctx, listVisibleCategoriesByFamilyID, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Category{}
+	for rows.Next() {
+		var i Category
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.Name,
+			&i.Icon,
+			&i.Color,
+			&i.Kind,
+			&i.ParentID,
+			&i.CreatedAt,
+			&i.Slug,
+			&i.SystemOnly,
 		); err != nil {
 			return nil, err
 		}
@@ -146,19 +221,23 @@ SET name = $3,
     icon = $4,
     color = $5,
     kind = $6,
-    parent_id = $7
+    parent_id = $7,
+    slug = $8,
+    system_only = $9
 WHERE id = $1 AND family_id = $2
-RETURNING id, family_id, name, icon, color, kind, parent_id, created_at
+RETURNING id, family_id, name, icon, color, kind, parent_id, created_at, slug, system_only
 `
 
 type UpdateCategoryParams struct {
-	ID       uuid.UUID
-	FamilyID uuid.UUID
-	Name     string
-	Icon     *string
-	Color    *string
-	Kind     string
-	ParentID *uuid.UUID
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	Name       string
+	Icon       *string
+	Color      *string
+	Kind       string
+	ParentID   *uuid.UUID
+	Slug       *string
+	SystemOnly bool
 }
 
 func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
@@ -170,6 +249,8 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 		arg.Color,
 		arg.Kind,
 		arg.ParentID,
+		arg.Slug,
+		arg.SystemOnly,
 	)
 	var i Category
 	err := row.Scan(
@@ -181,6 +262,8 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 		&i.Kind,
 		&i.ParentID,
 		&i.CreatedAt,
+		&i.Slug,
+		&i.SystemOnly,
 	)
 	return i, err
 }

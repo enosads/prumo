@@ -97,14 +97,16 @@ type BudgetItem struct {
 }
 
 type Category struct {
-	ID        uuid.UUID
-	FamilyID  uuid.UUID
-	Name      string
-	Icon      *string
-	Color     *string
-	Kind      string
-	ParentID  *uuid.UUID
-	CreatedAt time.Time
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	Name       string
+	Icon       *string
+	Color      *string
+	Kind       string
+	ParentID   *uuid.UUID
+	CreatedAt  time.Time
+	Slug       *string
+	SystemOnly bool
 }
 
 type CreditCard struct {
