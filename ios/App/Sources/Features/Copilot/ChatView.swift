@@ -8,6 +8,7 @@ public struct ChatView: View {
     @State private var activeToolCall: String?
     @State private var errorMessage: String?
     @State private var useAppleIntelligenceOnDevice: Bool = true
+    @FocusState private var isInputFocused: Bool
     
     private let suggestions = [
         "📊 Qual é o patrimônio líquido consolidado da família?",
@@ -42,6 +43,7 @@ public struct ChatView: View {
             .background(Brand.background)
             .navigationTitle("Copilot de IA")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
@@ -73,6 +75,15 @@ public struct ChatView: View {
                     }
                     .disabled(isStreaming)
                 }
+                
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Fechar Teclado") {
+                        isInputFocused = false
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.primary)
+                }
             }
         }
     }
@@ -83,7 +94,7 @@ public struct ChatView: View {
         HStack(spacing: 6) {
             Image(systemName: useAppleIntelligenceOnDevice ? "sparkles" : "cloud.fill")
                 .font(.caption2)
-            Text(useAppleIntelligenceOnDevice ? "Apple Intelligence On-Device • Privacidade Total & ANE" : "Servidor Cloud • Claude 3.5 / GPT-4o")
+            Text(useAppleIntelligenceOnDevice ? "Apple Intelligence On-Device • Privacidade Total & ANE" : "Servidor Cloud • Gemini Flash / Claude 3.5")
                 .font(.caption2.weight(.medium))
             Spacer()
         }
@@ -130,6 +141,7 @@ public struct ChatView: View {
                     
                     ForEach(suggestions, id: \.self) { suggestion in
                         Button(action: {
+                            isInputFocused = false
                             sendMessage(suggestion)
                         }) {
                             HStack {
@@ -159,6 +171,10 @@ public struct ChatView: View {
             }
             .padding(.vertical)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture {
+            isInputFocused = false
+        }
     }
     
     // MARK: - Messages ScrollView
@@ -174,6 +190,10 @@ public struct ChatView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                isInputFocused = false
             }
             .onChange(of: messages.count) {
                 scrollToBottom(proxy: proxy)
@@ -295,16 +315,27 @@ public struct ChatView: View {
             Divider()
             
             HStack(spacing: 10) {
-                Button(action: {}) {
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.secondary)
+                if isInputFocused {
+                    Button(action: {
+                        isInputFocused = false
+                    }) {
+                        Image(systemName: "keyboard.chevron.compact.down")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Brand.primary)
+                    }
+                } else {
+                    Button(action: {}) {
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.secondary)
+                    }
                 }
                 
                 TextField("Mensagem ou comando financeiro...", text: $inputText, axis: .vertical)
                     .font(.body)
                     .foregroundStyle(Color.primary)
                     .lineLimit(1...4)
+                    .focused($isInputFocused)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(Brand.surface)
@@ -317,6 +348,7 @@ public struct ChatView: View {
                 Button(action: {
                     let text = inputText
                     inputText = ""
+                    isInputFocused = false
                     sendMessage(text)
                 }) {
                     Image(systemName: "arrow.up.circle.fill")
@@ -448,6 +480,7 @@ public struct ChatView: View {
         conversationID = nil
         errorMessage = nil
         activeToolCall = nil
+        isInputFocused = false
     }
     
     private func scrollToBottom(proxy: ScrollViewProxy) {
