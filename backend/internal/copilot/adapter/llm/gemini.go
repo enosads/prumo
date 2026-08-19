@@ -85,7 +85,7 @@ func (g *GeminiProvider) Chat(ctx context.Context, systemPrompt string, messages
 		return nil, err
 	}
 
-	modelsToTry := []string{g.model, "gemini-2.5-flash", "gemini-2.0-flash"}
+	modelsToTry := []string{g.model, "gemini-3.7-flash", "gemini-3-flash", "gemini-2.5-flash", "gemini-2.0-flash"}
 	var lastErr error
 
 	for _, modelName := range uniqueStrings(modelsToTry) {
@@ -162,7 +162,7 @@ func (g *GeminiProvider) StreamChat(ctx context.Context, systemPrompt string, me
 		return nil, err
 	}
 
-	modelsToTry := []string{g.model, "gemini-2.5-flash", "gemini-2.0-flash"}
+	modelsToTry := []string{g.model, "gemini-3.7-flash", "gemini-3-flash", "gemini-2.5-flash", "gemini-2.0-flash"}
 	var lastErr error
 
 	for _, modelName := range uniqueStrings(modelsToTry) {

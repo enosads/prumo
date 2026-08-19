@@ -35,7 +35,11 @@ func NewCopilot(
 
 	// 2. Provedor Anthropic Claude
 	if cfg.AnthropicAPIKey != "" {
-		providers = append(providers, llm.NewAnthropicProvider(cfg.AnthropicAPIKey, "claude-3-5-sonnet-20241022"))
+		anthModel := cfg.AnthropicModel
+		if anthModel == "" {
+			anthModel = "claude-3-7-sonnet-20250219"
+		}
+		providers = append(providers, llm.NewAnthropicProvider(cfg.AnthropicAPIKey, anthModel))
 	}
 
 	// 3. Provedor OpenAI GPT-4o

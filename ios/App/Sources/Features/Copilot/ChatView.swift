@@ -70,7 +70,7 @@ public struct ChatView: View {
         HStack(spacing: 6) {
             Image(systemName: "sparkles")
                 .font(.caption2.weight(.bold))
-            Text("Gemini 2.5 Flash • Respostas Generativas em Tempo Real")
+            Text("IA Generativa • Gemini Flash / Claude 3.7")
                 .font(.caption2.weight(.medium))
             Spacer()
             Circle()

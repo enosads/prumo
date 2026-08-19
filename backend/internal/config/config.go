@@ -15,6 +15,7 @@ type Config struct {
 	JWTExpirationHours         int
 	RefreshTokenExpirationDays int
 	AnthropicAPIKey            string
+	AnthropicModel            string
 	OpenAIAPIKey               string
 	GeminiAPIKey               string
 	GeminiModel                string
@@ -35,9 +36,10 @@ func Load() *Config {
 		JWTExpirationHours:         getEnvAsInt("JWT_EXPIRATION_HOURS", 24),
 		RefreshTokenExpirationDays: getEnvAsInt("REFRESH_TOKEN_EXPIRATION_DAYS", 30),
 		AnthropicAPIKey:            os.Getenv("ANTHROPIC_API_KEY"),
+		AnthropicModel:             getEnv("ANTHROPIC_MODEL", "claude-3-7-sonnet-20250219"),
 		OpenAIAPIKey:               os.Getenv("OPENAI_API_KEY"),
 		GeminiAPIKey:               os.Getenv("GEMINI_API_KEY"),
-		GeminiModel:                getEnv("GEMINI_MODEL", "gemini-2.5-flash"),
+		GeminiModel:                getEnv("GEMINI_MODEL", "gemini-3.7-flash"),
 		APNSKeyID:                  os.Getenv("APNS_KEY_ID"),
 		APNSTeamID:                 os.Getenv("APNS_TEAM_ID"),
 		APNSBundleID:               getEnv("APNS_BUNDLE_ID", "dev.enosads.prumo"),
