@@ -98,13 +98,19 @@ public actor APIClient {
         }
     }
     
+    private func buildURL(for path: String) -> URL {
+        let baseString = baseURL.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let fullString = path.hasPrefix("/") ? "\(baseString)\(path)" : "\(baseString)/\(path)"
+        return URL(string: fullString) ?? baseURL.appendingPathComponent(path)
+    }
+    
     private func rawDataRequest(
         _ path: String,
         method: String = "GET",
         body: (any Encodable)? = nil,
         token: String? = nil
     ) async throws -> Data {
-        let url = baseURL.appendingPathComponent(path)
+        let url = buildURL(for: path)
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
