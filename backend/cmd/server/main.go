@@ -14,6 +14,7 @@ import (
 
 	"github.com/enosads/prumo/backend/internal/api"
 	"github.com/enosads/prumo/backend/internal/config"
+	"github.com/enosads/prumo/backend/internal/db"
 	"github.com/enosads/prumo/backend/internal/db/sqlc"
 )
 
@@ -25,6 +26,12 @@ func main() {
 	defer cancel()
 
 	logger.Printf("Iniciando Prumo API no ambiente '%s'...", cfg.Env)
+
+	// Aplica migrações embutidas automaticamente
+	if err := db.Migrate(cfg.DatabaseURL); err != nil {
+		logger.Fatalf("Falha ao aplicar migrações: %v", err)
+	}
+	logger.Println("Migrações aplicadas com sucesso.")
 
 	// Conexão com o pool de conexões do PostgreSQL
 	poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseURL)

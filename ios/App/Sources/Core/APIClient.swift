@@ -24,7 +24,7 @@ public actor APIClient {
     #if DEBUG
     public var baseURL = URL(string: "http://localhost:8085")!
     #else
-    public var baseURL = URL(string: "https://api.prumo.app")!
+    public var baseURL = URL(string: "https://prumo-backend.fly.dev")!
     #endif
     
     private let session: URLSession
@@ -37,17 +37,33 @@ public actor APIClient {
         self.session = URLSession(configuration: config)
         
         let dec = JSONDecoder()
-        let formatterWithFrac = ISO8601DateFormatter()
-        formatterWithFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let formatterWithoutFrac = ISO8601DateFormatter()
-        formatterWithoutFrac.formatOptions = [.withInternetDateTime]
-        
         dec.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateStr = try container.decode(String.self)
-            if let date = formatterWithFrac.date(from: dateStr) ?? formatterWithoutFrac.date(from: dateStr) {
+            
+            let fFrac = ISO8601DateFormatter()
+            fFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = fFrac.date(from: dateStr) {
                 return date
             }
+            
+            let fStd = ISO8601DateFormatter()
+            fStd.formatOptions = [.withInternetDateTime]
+            if let date = fStd.date(from: dateStr) {
+                return date
+            }
+            
+            let df = DateFormatter()
+            df.locale = Locale(identifier: "en_US_POSIX")
+            df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ"
+            if let date = df.date(from: dateStr) {
+                return date
+            }
+            df.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+            if let date = df.date(from: dateStr) {
+                return date
+            }
+            
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Data inválida: \(dateStr)")
         }
         self.decoder = dec
@@ -57,13 +73,44 @@ public actor APIClient {
         self.encoder = enc
     }
     
+    public func send(
+        _ path: String,
+        method: String = "POST",
+        body: (any Encodable)? = nil,
+        token: String? = nil
+    ) async throws {
+        _ = try await rawDataRequest(path, method: method, body: body, token: token)
+    }
+    
     public func request<T: Decodable>(
         _ path: String,
         method: String = "GET",
         body: (any Encodable)? = nil,
         token: String? = nil
     ) async throws -> T {
-        let url = baseURL.appendingPathComponent(path)
+        let data = try await rawDataRequest(path, method: method, body: body, token: token)
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            let jsonStr = String(data: data, encoding: .utf8) ?? ""
+            print("❌ Erro de decodificação em '\(path)': \(error). JSON: \(jsonStr)")
+            throw APIError.decoding(error)
+        }
+    }
+    
+    private func buildURL(for path: String) -> URL {
+        let baseString = baseURL.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let fullString = path.hasPrefix("/") ? "\(baseString)\(path)" : "\(baseString)/\(path)"
+        return URL(string: fullString) ?? baseURL.appendingPathComponent(path)
+    }
+    
+    private func rawDataRequest(
+        _ path: String,
+        method: String = "GET",
+        body: (any Encodable)? = nil,
+        token: String? = nil
+    ) async throws -> Data {
+        let url = buildURL(for: path)
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -95,10 +142,6 @@ public actor APIClient {
             throw APIError.server(code: "\(http.statusCode)", message: "Erro HTTP \(http.statusCode)")
         }
         
-        do {
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            throw APIError.decoding(error)
-        }
+        return data
     }
 }

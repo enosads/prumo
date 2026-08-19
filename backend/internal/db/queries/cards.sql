@@ -17,6 +17,10 @@ ORDER BY cc.name ASC;
 SELECT * FROM credit_cards
 WHERE id = $1 AND family_id = $2;
 
+-- name: GetCreditCardByAccountID :one
+SELECT * FROM credit_cards
+WHERE account_id = $1 AND family_id = $2;
+
 -- name: CreateCreditCardInvoice :one
 INSERT INTO credit_card_invoices (
     credit_card_id, family_id, period_year, period_month, closing_date, due_date, total_amount_cents, status

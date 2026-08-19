@@ -68,6 +68,115 @@
                 ],
                 "type": "object"
             },
+            "AnticipatedItemDetail": {
+                "additionalProperties": false,
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "discount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "installment_info": {
+                        "type": "string"
+                    },
+                    "months_ahead": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "net_amount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "original_amount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "transaction_id": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "transaction_id",
+                    "description",
+                    "original_amount_cents",
+                    "discount_cents",
+                    "net_amount_cents",
+                    "installment_info",
+                    "months_ahead"
+                ],
+                "type": "object"
+            },
+            "ApplyAnticipationInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ApplyAnticipationInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "annual_discount_rate": {
+                        "description": "Taxa anual de desconto",
+                        "format": "double",
+                        "type": "number"
+                    },
+                    "transaction_ids": {
+                        "description": "IDs das parcelas futuras a antecipar",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "transaction_ids"
+                ],
+                "type": "object"
+            },
+            "ApplyAnticipationOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ApplyAnticipationOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "discount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "net_total_added_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "target_invoice": {
+                        "$ref": "#/components/schemas/CreditCardInvoice"
+                    },
+                    "updated_count": {
+                        "format": "int64",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "target_invoice",
+                    "discount_cents",
+                    "net_total_added_cents",
+                    "updated_count"
+                ],
+                "type": "object"
+            },
             "AuthResponseOutputBody": {
                 "additionalProperties": false,
                 "properties": {
@@ -128,6 +237,213 @@
                     "id",
                     "email",
                     "full_name"
+                ],
+                "type": "object"
+            },
+            "Budget": {
+                "additionalProperties": false,
+                "properties": {
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "PeriodMonth": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "PeriodYear": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "TotalAllocatedCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "PeriodYear",
+                    "PeriodMonth",
+                    "TotalAllocatedCents",
+                    "CreatedAt",
+                    "UpdatedAt"
+                ],
+                "type": "object"
+            },
+            "BudgetItem": {
+                "additionalProperties": false,
+                "properties": {
+                    "AllocatedAmountCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "BudgetID": {
+                        "type": "string"
+                    },
+                    "CategoryID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "RolloverEnabled": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "BudgetID",
+                    "CategoryID",
+                    "AllocatedAmountCents",
+                    "RolloverEnabled"
+                ],
+                "type": "object"
+            },
+            "BudgetItemDetail": {
+                "additionalProperties": false,
+                "properties": {
+                    "allocated_amount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "budget_id": {
+                        "type": "string"
+                    },
+                    "category_color": {
+                        "type": "string"
+                    },
+                    "category_icon": {
+                        "type": "string"
+                    },
+                    "category_id": {
+                        "type": "string"
+                    },
+                    "category_kind": {
+                        "type": "string"
+                    },
+                    "category_name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "remaining_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "rollover_enabled": {
+                        "type": "boolean"
+                    },
+                    "spent_amount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "spent_percentage": {
+                        "format": "double",
+                        "type": "number"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "budget_id",
+                    "category_id",
+                    "category_name",
+                    "category_kind",
+                    "allocated_amount_cents",
+                    "spent_amount_cents",
+                    "spent_percentage",
+                    "remaining_cents",
+                    "status",
+                    "rollover_enabled"
+                ],
+                "type": "object"
+            },
+            "BudgetSummaryData": {
+                "additionalProperties": false,
+                "properties": {
+                    "free_to_invest_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "total_budgeted_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "total_income_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "total_spent_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "total_income_cents",
+                    "total_budgeted_cents",
+                    "total_spent_cents",
+                    "free_to_invest_cents"
+                ],
+                "type": "object"
+            },
+            "Category": {
+                "additionalProperties": false,
+                "properties": {
+                    "Color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "Icon": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Kind": {
+                        "type": "string"
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "ParentID": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "Name",
+                    "Icon",
+                    "Color",
+                    "Kind",
+                    "ParentID",
+                    "CreatedAt"
                 ],
                 "type": "object"
             },
@@ -214,6 +530,152 @@
                 ],
                 "type": "object"
             },
+            "CreateCategoryInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateCategoryInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "color": {
+                        "description": "Cor hexadecimal para UI (ex: #FF9500)",
+                        "type": "string"
+                    },
+                    "icon": {
+                        "description": "Nome do \u00edcone SF Symbols (ex: cart.fill, house.fill)",
+                        "type": "string"
+                    },
+                    "kind": {
+                        "default": "expense",
+                        "description": "Tipo da categoria",
+                        "enum": [
+                            "income",
+                            "expense",
+                            "both"
+                        ],
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Nome da categoria (ex: Alimenta\u00e7\u00e3o, Moradia)",
+                        "minLength": 2,
+                        "type": "string"
+                    },
+                    "parent_id": {
+                        "description": "ID da categoria pai para hierarquia",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ],
+                "type": "object"
+            },
+            "CreateCategoryOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateCategoryOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "category": {
+                        "$ref": "#/components/schemas/Category"
+                    }
+                },
+                "required": [
+                    "category"
+                ],
+                "type": "object"
+            },
+            "CreateCreditCardInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateCreditCardInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "account_id": {
+                        "description": "ID da conta associada (se omitido, ser\u00e1 criada uma conta de cart\u00e3o automaticamente)",
+                        "type": "string"
+                    },
+                    "closing_day": {
+                        "description": "Dia do m\u00eas de fechamento da fatura",
+                        "format": "int64",
+                        "maximum": 31,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "color": {
+                        "description": "Cor do cart\u00e3o para UI (ex: #820AD1)",
+                        "type": "string"
+                    },
+                    "credit_limit_cents": {
+                        "description": "Limite de cr\u00e9dito em centavos",
+                        "format": "int64",
+                        "minimum": 100,
+                        "type": "integer"
+                    },
+                    "due_day": {
+                        "description": "Dia do m\u00eas de vencimento da fatura",
+                        "format": "int64",
+                        "maximum": 31,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "last_four_digits": {
+                        "description": "\u00daltimos 4 d\u00edgitos",
+                        "maxLength": 4,
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Nome do cart\u00e3o (ex: Nubank Ultravioleta, XP Visa Infinite)",
+                        "minLength": 2,
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "credit_limit_cents",
+                    "closing_day",
+                    "due_day"
+                ],
+                "type": "object"
+            },
+            "CreateCreditCardOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateCreditCardOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "card": {
+                        "$ref": "#/components/schemas/CreditCardSummary"
+                    }
+                },
+                "required": [
+                    "card"
+                ],
+                "type": "object"
+            },
             "CreateFamilyInputBody": {
                 "additionalProperties": false,
                 "properties": {
@@ -261,6 +723,290 @@
                 },
                 "required": [
                     "family"
+                ],
+                "type": "object"
+            },
+            "CreateTransactionInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateTransactionInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "account_id": {
+                        "description": "ID da conta de origem/lan\u00e7amento",
+                        "type": "string"
+                    },
+                    "amount_cents": {
+                        "description": "Valor em centavos",
+                        "format": "int64",
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "category_id": {
+                        "description": "ID da categoria",
+                        "type": "string"
+                    },
+                    "credit_card_invoice_id": {
+                        "description": "ID da fatura de cart\u00e3o vinculada",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Descri\u00e7\u00e3o da transa\u00e7\u00e3o",
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "destination_account_id": {
+                        "description": "ID da conta de destino (obrigat\u00f3rio se kind=transfer)",
+                        "type": "string"
+                    },
+                    "installment_total": {
+                        "default": 1,
+                        "description": "N\u00famero total de parcelas (para compras parceladas)",
+                        "format": "int64",
+                        "maximum": 72,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "kind": {
+                        "description": "Tipo da transa\u00e7\u00e3o",
+                        "enum": [
+                            "income",
+                            "expense",
+                            "transfer"
+                        ],
+                        "type": "string"
+                    },
+                    "notes": {
+                        "description": "Observa\u00e7\u00f5es adicionais",
+                        "type": "string"
+                    },
+                    "status": {
+                        "default": "completed",
+                        "description": "Status",
+                        "enum": [
+                            "pending",
+                            "completed",
+                            "cancelled"
+                        ],
+                        "type": "string"
+                    },
+                    "tags": {
+                        "description": "Tags para busca e agrupamento",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "target_user_id": {
+                        "description": "Membro da fam\u00edlia respons\u00e1vel pelo gasto",
+                        "type": "string"
+                    },
+                    "transacted_at": {
+                        "description": "Data/hora do lan\u00e7amento",
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "account_id",
+                    "kind",
+                    "amount_cents",
+                    "description"
+                ],
+                "type": "object"
+            },
+            "CreateTransactionOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/CreateTransactionOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "installments": {
+                        "items": {
+                            "$ref": "#/components/schemas/Transaction"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "transaction": {
+                        "$ref": "#/components/schemas/Transaction"
+                    }
+                },
+                "required": [
+                    "transaction"
+                ],
+                "type": "object"
+            },
+            "CreditCard": {
+                "additionalProperties": false,
+                "properties": {
+                    "AccountID": {
+                        "type": "string"
+                    },
+                    "ClosingDay": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "Color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "CreditLimitCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "DueDay": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "LastFourDigits": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "AccountID",
+                    "FamilyID",
+                    "Name",
+                    "LastFourDigits",
+                    "CreditLimitCents",
+                    "ClosingDay",
+                    "DueDay",
+                    "Color",
+                    "CreatedAt",
+                    "UpdatedAt"
+                ],
+                "type": "object"
+            },
+            "CreditCardInvoice": {
+                "additionalProperties": false,
+                "properties": {
+                    "ClosingDate": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "CreditCardID": {
+                        "type": "string"
+                    },
+                    "DueDate": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "PaidAmountCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "PeriodMonth": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "PeriodYear": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "Status": {
+                        "type": "string"
+                    },
+                    "TotalAmountCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "CreditCardID",
+                    "FamilyID",
+                    "PeriodYear",
+                    "PeriodMonth",
+                    "ClosingDate",
+                    "DueDate",
+                    "TotalAmountCents",
+                    "PaidAmountCents",
+                    "Status",
+                    "CreatedAt",
+                    "UpdatedAt"
+                ],
+                "type": "object"
+            },
+            "CreditCardSummary": {
+                "additionalProperties": false,
+                "properties": {
+                    "account_name": {
+                        "type": "string"
+                    },
+                    "available_limit_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "card": {
+                        "$ref": "#/components/schemas/CreditCard"
+                    },
+                    "current_invoice": {
+                        "$ref": "#/components/schemas/CreditCardInvoice"
+                    },
+                    "used_limit_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "card",
+                    "account_name",
+                    "used_limit_cents",
+                    "available_limit_cents"
                 ],
                 "type": "object"
             },
@@ -418,6 +1164,261 @@
                     "Status",
                     "ExpiresAt",
                     "CreatedAt"
+                ],
+                "type": "object"
+            },
+            "GetBudgetOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/GetBudgetOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "budget": {
+                        "$ref": "#/components/schemas/Budget"
+                    },
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/BudgetItemDetail"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "summary": {
+                        "$ref": "#/components/schemas/BudgetSummaryData"
+                    }
+                },
+                "required": [
+                    "budget",
+                    "items",
+                    "summary"
+                ],
+                "type": "object"
+            },
+            "GetCreditCardOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/GetCreditCardOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "card": {
+                        "$ref": "#/components/schemas/CreditCardSummary"
+                    }
+                },
+                "required": [
+                    "card"
+                ],
+                "type": "object"
+            },
+            "GetInstallmentsProjectionOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/GetInstallmentsProjectionOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "projections": {
+                        "items": {
+                            "$ref": "#/components/schemas/MonthlyProjectionItem"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "projections"
+                ],
+                "type": "object"
+            },
+            "GetInvoiceDetailsOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/GetInvoiceDetailsOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "invoice": {
+                        "$ref": "#/components/schemas/CreditCardInvoice"
+                    },
+                    "transactions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ListTransactionsByInvoiceIDRow"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "invoice",
+                    "transactions"
+                ],
+                "type": "object"
+            },
+            "GetTransactionByIDRow": {
+                "additionalProperties": false,
+                "properties": {
+                    "AccountID": {
+                        "type": "string"
+                    },
+                    "AccountName": {
+                        "type": "string"
+                    },
+                    "AmountCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "AuthorName": {
+                        "type": "string"
+                    },
+                    "CategoryID": {
+                        "type": "string"
+                    },
+                    "CategoryName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "CreatedByUserID": {
+                        "type": "string"
+                    },
+                    "CreditCardInvoiceID": {
+                        "type": "string"
+                    },
+                    "Description": {
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "InstallmentGroupID": {
+                        "type": "string"
+                    },
+                    "InstallmentNumber": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "InstallmentTotal": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "Kind": {
+                        "type": "string"
+                    },
+                    "Notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Status": {
+                        "type": "string"
+                    },
+                    "Tags": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "TargetUserID": {
+                        "type": "string"
+                    },
+                    "TransactedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "AccountID",
+                    "CategoryID",
+                    "CreatedByUserID",
+                    "TargetUserID",
+                    "Kind",
+                    "AmountCents",
+                    "Description",
+                    "TransactedAt",
+                    "Status",
+                    "CreditCardInvoiceID",
+                    "InstallmentNumber",
+                    "InstallmentTotal",
+                    "InstallmentGroupID",
+                    "Tags",
+                    "Notes",
+                    "CreatedAt",
+                    "UpdatedAt",
+                    "CategoryName",
+                    "AccountName",
+                    "AuthorName"
+                ],
+                "type": "object"
+            },
+            "GetTransactionOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/GetTransactionOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "transaction": {
+                        "$ref": "#/components/schemas/GetTransactionByIDRow"
+                    }
+                },
+                "required": [
+                    "transaction"
                 ],
                 "type": "object"
             },
@@ -612,6 +1613,87 @@
                 ],
                 "type": "object"
             },
+            "ListCardInvoicesOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListCardInvoicesOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "invoices": {
+                        "items": {
+                            "$ref": "#/components/schemas/CreditCardInvoice"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "invoices"
+                ],
+                "type": "object"
+            },
+            "ListCategoriesOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListCategoriesOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "categories": {
+                        "items": {
+                            "$ref": "#/components/schemas/Category"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "categories"
+                ],
+                "type": "object"
+            },
+            "ListCreditCardsOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListCreditCardsOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "cards": {
+                        "items": {
+                            "$ref": "#/components/schemas/CreditCardSummary"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "cards"
+                ],
+                "type": "object"
+            },
             "ListFamiliesByUserIDRow": {
                 "additionalProperties": false,
                 "properties": {
@@ -731,6 +1813,137 @@
                 ],
                 "type": "object"
             },
+            "ListFutureInstallmentsByCardIDRow": {
+                "additionalProperties": false,
+                "properties": {
+                    "AccountID": {
+                        "type": "string"
+                    },
+                    "AmountCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "AuthorName": {
+                        "type": "string"
+                    },
+                    "CategoryID": {
+                        "type": "string"
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "CreatedByUserID": {
+                        "type": "string"
+                    },
+                    "CreditCardInvoiceID": {
+                        "type": "string"
+                    },
+                    "Description": {
+                        "type": "string"
+                    },
+                    "DueDate": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "InstallmentGroupID": {
+                        "type": "string"
+                    },
+                    "InstallmentNumber": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "InstallmentTotal": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "Kind": {
+                        "type": "string"
+                    },
+                    "Notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "PeriodMonth": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "PeriodYear": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "Status": {
+                        "type": "string"
+                    },
+                    "Tags": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "TargetName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "TargetUserID": {
+                        "type": "string"
+                    },
+                    "TransactedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "AccountID",
+                    "CategoryID",
+                    "CreatedByUserID",
+                    "TargetUserID",
+                    "Kind",
+                    "AmountCents",
+                    "Description",
+                    "TransactedAt",
+                    "Status",
+                    "CreditCardInvoiceID",
+                    "InstallmentNumber",
+                    "InstallmentTotal",
+                    "InstallmentGroupID",
+                    "Tags",
+                    "Notes",
+                    "CreatedAt",
+                    "UpdatedAt",
+                    "PeriodYear",
+                    "PeriodMonth",
+                    "DueDate",
+                    "AuthorName",
+                    "TargetName"
+                ],
+                "type": "object"
+            },
             "ListMembersOutputBody": {
                 "additionalProperties": false,
                 "properties": {
@@ -755,6 +1968,314 @@
                 },
                 "required": [
                     "members"
+                ],
+                "type": "object"
+            },
+            "ListTransactionsByFamilyIDWithFiltersRow": {
+                "additionalProperties": false,
+                "properties": {
+                    "AccountID": {
+                        "type": "string"
+                    },
+                    "AccountName": {
+                        "type": "string"
+                    },
+                    "AmountCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "AuthorName": {
+                        "type": "string"
+                    },
+                    "CategoryColor": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CategoryID": {
+                        "type": "string"
+                    },
+                    "CategoryIcon": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CategoryName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "CreatedByUserID": {
+                        "type": "string"
+                    },
+                    "CreditCardInvoiceID": {
+                        "type": "string"
+                    },
+                    "Description": {
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "InstallmentGroupID": {
+                        "type": "string"
+                    },
+                    "InstallmentNumber": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "InstallmentTotal": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "Kind": {
+                        "type": "string"
+                    },
+                    "Notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Status": {
+                        "type": "string"
+                    },
+                    "Tags": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "TargetName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "TargetUserID": {
+                        "type": "string"
+                    },
+                    "TransactedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "AccountID",
+                    "CategoryID",
+                    "CreatedByUserID",
+                    "TargetUserID",
+                    "Kind",
+                    "AmountCents",
+                    "Description",
+                    "TransactedAt",
+                    "Status",
+                    "CreditCardInvoiceID",
+                    "InstallmentNumber",
+                    "InstallmentTotal",
+                    "InstallmentGroupID",
+                    "Tags",
+                    "Notes",
+                    "CreatedAt",
+                    "UpdatedAt",
+                    "CategoryName",
+                    "CategoryIcon",
+                    "CategoryColor",
+                    "AccountName",
+                    "AuthorName",
+                    "TargetName"
+                ],
+                "type": "object"
+            },
+            "ListTransactionsByInvoiceIDRow": {
+                "additionalProperties": false,
+                "properties": {
+                    "AccountID": {
+                        "type": "string"
+                    },
+                    "AmountCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "AuthorName": {
+                        "type": "string"
+                    },
+                    "CategoryColor": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CategoryID": {
+                        "type": "string"
+                    },
+                    "CategoryIcon": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CategoryName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "CreatedByUserID": {
+                        "type": "string"
+                    },
+                    "CreditCardInvoiceID": {
+                        "type": "string"
+                    },
+                    "Description": {
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "InstallmentGroupID": {
+                        "type": "string"
+                    },
+                    "InstallmentNumber": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "InstallmentTotal": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "Kind": {
+                        "type": "string"
+                    },
+                    "Notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Status": {
+                        "type": "string"
+                    },
+                    "Tags": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "TargetName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "TargetUserID": {
+                        "type": "string"
+                    },
+                    "TransactedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "AccountID",
+                    "CategoryID",
+                    "CreatedByUserID",
+                    "TargetUserID",
+                    "Kind",
+                    "AmountCents",
+                    "Description",
+                    "TransactedAt",
+                    "Status",
+                    "CreditCardInvoiceID",
+                    "InstallmentNumber",
+                    "InstallmentTotal",
+                    "InstallmentGroupID",
+                    "Tags",
+                    "Notes",
+                    "CreatedAt",
+                    "UpdatedAt",
+                    "CategoryName",
+                    "CategoryIcon",
+                    "CategoryColor",
+                    "AuthorName",
+                    "TargetName"
+                ],
+                "type": "object"
+            },
+            "ListTransactionsOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/ListTransactionsOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "totals": {
+                        "$ref": "#/components/schemas/MonthlyCashFlowSummary"
+                    },
+                    "transactions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ListTransactionsByFamilyIDWithFiltersRow"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "transactions"
                 ],
                 "type": "object"
             },
@@ -817,6 +2338,157 @@
                 ],
                 "type": "object"
             },
+            "MemberSpendingShare": {
+                "additionalProperties": false,
+                "properties": {
+                    "amount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "user_name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "user_name",
+                    "amount_cents"
+                ],
+                "type": "object"
+            },
+            "MonthlyCashFlowSummary": {
+                "additionalProperties": false,
+                "properties": {
+                    "net_cash_flow_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "total_expense_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "total_income_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "total_income_cents",
+                    "total_expense_cents",
+                    "net_cash_flow_cents"
+                ],
+                "type": "object"
+            },
+            "MonthlyProjectionItem": {
+                "additionalProperties": false,
+                "properties": {
+                    "due_date": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "installments_count": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "member_shares": {
+                        "items": {
+                            "$ref": "#/components/schemas/MemberSpendingShare"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "month_label": {
+                        "type": "string"
+                    },
+                    "period_month": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "period_year": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "total_amount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "transactions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ListFutureInstallmentsByCardIDRow"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "period_year",
+                    "period_month",
+                    "month_label",
+                    "due_date",
+                    "total_amount_cents",
+                    "installments_count",
+                    "member_shares",
+                    "transactions"
+                ],
+                "type": "object"
+            },
+            "PayInvoiceInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/PayInvoiceInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "amount_cents": {
+                        "description": "Valor a pagar em centavos",
+                        "format": "int64",
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "payment_account_id": {
+                        "description": "Conta corrente para d\u00e9bito do pagamento",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "payment_account_id",
+                    "amount_cents"
+                ],
+                "type": "object"
+            },
+            "PayInvoiceOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/PayInvoiceOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "invoice": {
+                        "$ref": "#/components/schemas/CreditCardInvoice"
+                    },
+                    "payment_transaction": {
+                        "$ref": "#/components/schemas/Transaction"
+                    }
+                },
+                "required": [
+                    "invoice",
+                    "payment_transaction"
+                ],
+                "type": "object"
+            },
             "RegisterInputBody": {
                 "additionalProperties": false,
                 "properties": {
@@ -853,6 +2525,245 @@
                     "email",
                     "full_name",
                     "password"
+                ],
+                "type": "object"
+            },
+            "SimulateAnticipationInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/SimulateAnticipationInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "annual_discount_rate": {
+                        "description": "Taxa anual de desconto em porcentagem (padr\u00e3o: 10.0)",
+                        "format": "double",
+                        "type": "number"
+                    },
+                    "transaction_ids": {
+                        "description": "IDs das parcelas futuras a antecipar",
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "transaction_ids"
+                ],
+                "type": "object"
+            },
+            "SimulateAnticipationOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/SimulateAnticipationOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "anticipated_total_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/AnticipatedItemDetail"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "original_total_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "total_discount_cents": {
+                        "format": "int64",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "original_total_cents",
+                    "total_discount_cents",
+                    "anticipated_total_cents",
+                    "items"
+                ],
+                "type": "object"
+            },
+            "Transaction": {
+                "additionalProperties": false,
+                "properties": {
+                    "AccountID": {
+                        "type": "string"
+                    },
+                    "AmountCents": {
+                        "format": "int64",
+                        "type": "integer"
+                    },
+                    "CategoryID": {
+                        "type": "string"
+                    },
+                    "CreatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "CreatedByUserID": {
+                        "type": "string"
+                    },
+                    "CreditCardInvoiceID": {
+                        "type": "string"
+                    },
+                    "Description": {
+                        "type": "string"
+                    },
+                    "FamilyID": {
+                        "type": "string"
+                    },
+                    "ID": {
+                        "type": "string"
+                    },
+                    "InstallmentGroupID": {
+                        "type": "string"
+                    },
+                    "InstallmentNumber": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "InstallmentTotal": {
+                        "format": "int32",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "Kind": {
+                        "type": "string"
+                    },
+                    "Notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "Status": {
+                        "type": "string"
+                    },
+                    "Tags": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "TargetUserID": {
+                        "type": "string"
+                    },
+                    "TransactedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "UpdatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "ID",
+                    "FamilyID",
+                    "AccountID",
+                    "CategoryID",
+                    "CreatedByUserID",
+                    "TargetUserID",
+                    "Kind",
+                    "AmountCents",
+                    "Description",
+                    "TransactedAt",
+                    "Status",
+                    "CreditCardInvoiceID",
+                    "InstallmentNumber",
+                    "InstallmentTotal",
+                    "InstallmentGroupID",
+                    "Tags",
+                    "Notes",
+                    "CreatedAt",
+                    "UpdatedAt"
+                ],
+                "type": "object"
+            },
+            "UpsertBudgetItemInputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/UpsertBudgetItemInputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "allocated_amount_cents": {
+                        "description": "Teto alocado em centavos",
+                        "format": "int64",
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "category_id": {
+                        "description": "ID da categoria",
+                        "type": "string"
+                    },
+                    "rollover_enabled": {
+                        "default": false,
+                        "description": "Permite ac\u00famulo de saldo para o m\u00eas seguinte",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "category_id",
+                    "allocated_amount_cents"
+                ],
+                "type": "object"
+            },
+            "UpsertBudgetItemOutputBody": {
+                "additionalProperties": false,
+                "properties": {
+                    "$schema": {
+                        "description": "A URL to the JSON Schema for this object.",
+                        "examples": [
+                            "https://example.com/schemas/UpsertBudgetItemOutputBody.json"
+                        ],
+                        "format": "uri",
+                        "readOnly": true,
+                        "type": "string"
+                    },
+                    "budget": {
+                        "$ref": "#/components/schemas/Budget"
+                    },
+                    "item": {
+                        "$ref": "#/components/schemas/BudgetItem"
+                    }
+                },
+                "required": [
+                    "item",
+                    "budget"
                 ],
                 "type": "object"
             }
@@ -1102,6 +3013,762 @@
                 ]
             }
         },
+        "/v1/budgets": {
+            "get": {
+                "operationId": "getBudget",
+                "parameters": [
+                    {
+                        "description": "Ano do or\u00e7amento (padr\u00e3o: ano atual)",
+                        "explode": false,
+                        "in": "query",
+                        "name": "year",
+                        "schema": {
+                            "description": "Ano do or\u00e7amento (padr\u00e3o: ano atual)",
+                            "format": "int64",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "M\u00eas do or\u00e7amento (1-12, padr\u00e3o: m\u00eas atual)",
+                        "explode": false,
+                        "in": "query",
+                        "name": "month",
+                        "schema": {
+                            "description": "M\u00eas do or\u00e7amento (1-12, padr\u00e3o: m\u00eas atual)",
+                            "format": "int64",
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetBudgetOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Consulta os envelopes or\u00e7ament\u00e1rios do m\u00eas com realizado vs. or\u00e7ado",
+                "tags": [
+                    "Or\u00e7amentos"
+                ]
+            }
+        },
+        "/v1/budgets/{id}/items": {
+            "put": {
+                "operationId": "upsertBudgetItem",
+                "parameters": [
+                    {
+                        "description": "ID do or\u00e7amento",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do or\u00e7amento",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpsertBudgetItemInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpsertBudgetItemOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Define ou atualiza o teto or\u00e7ament\u00e1rio de uma categoria (envelope)",
+                "tags": [
+                    "Or\u00e7amentos"
+                ]
+            }
+        },
+        "/v1/budgets/{id}/items/{categoryId}": {
+            "delete": {
+                "operationId": "deleteBudgetItem",
+                "parameters": [
+                    {
+                        "description": "ID do or\u00e7amento",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do or\u00e7amento",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "ID da categoria",
+                        "in": "path",
+                        "name": "categoryId",
+                        "required": true,
+                        "schema": {
+                            "description": "ID da categoria",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Remove uma categoria do or\u00e7amento mensal",
+                "tags": [
+                    "Or\u00e7amentos"
+                ]
+            }
+        },
+        "/v1/cards": {
+            "get": {
+                "operationId": "listCreditCards",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListCreditCardsOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista todos os cart\u00f5es de cr\u00e9dito da fam\u00edlia",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            },
+            "post": {
+                "operationId": "createCreditCard",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCreditCardInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateCreditCardOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Cadastra um novo cart\u00e3o de cr\u00e9dito",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            }
+        },
+        "/v1/cards/{id}": {
+            "get": {
+                "operationId": "getCreditCard",
+                "parameters": [
+                    {
+                        "description": "ID do cart\u00e3o de cr\u00e9dito",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do cart\u00e3o de cr\u00e9dito",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetCreditCardOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Consulta os dados e limites de um cart\u00e3o",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            }
+        },
+        "/v1/cards/{id}/installments": {
+            "get": {
+                "operationId": "getInstallmentsProjection",
+                "parameters": [
+                    {
+                        "description": "ID do cart\u00e3o de cr\u00e9dito",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do cart\u00e3o de cr\u00e9dito",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetInstallmentsProjectionOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Projeta as faturas e parcelas futuras dos pr\u00f3ximos 12 meses",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            }
+        },
+        "/v1/cards/{id}/installments/anticipate/apply": {
+            "post": {
+                "operationId": "applyAnticipation",
+                "parameters": [
+                    {
+                        "description": "ID do cart\u00e3o de cr\u00e9dito",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do cart\u00e3o de cr\u00e9dito",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApplyAnticipationInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApplyAnticipationOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Efetiva a antecipa\u00e7\u00e3o de parcelas com desconto para a fatura atual",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            }
+        },
+        "/v1/cards/{id}/installments/anticipate/simulate": {
+            "post": {
+                "operationId": "simulateAnticipation",
+                "parameters": [
+                    {
+                        "description": "ID do cart\u00e3o de cr\u00e9dito",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do cart\u00e3o de cr\u00e9dito",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SimulateAnticipationInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SimulateAnticipationOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Simula o desconto financeiro na antecipa\u00e7\u00e3o de parcelas futuras",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            }
+        },
+        "/v1/cards/{id}/invoices": {
+            "get": {
+                "operationId": "listCardInvoices",
+                "parameters": [
+                    {
+                        "description": "ID do cart\u00e3o de cr\u00e9dito",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do cart\u00e3o de cr\u00e9dito",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListCardInvoicesOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista as faturas do cart\u00e3o de cr\u00e9dito",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            }
+        },
+        "/v1/cards/{id}/invoices/{invoiceId}": {
+            "get": {
+                "operationId": "getInvoiceDetails",
+                "parameters": [
+                    {
+                        "description": "ID do cart\u00e3o de cr\u00e9dito",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do cart\u00e3o de cr\u00e9dito",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "ID da fatura",
+                        "in": "path",
+                        "name": "invoiceId",
+                        "required": true,
+                        "schema": {
+                            "description": "ID da fatura",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetInvoiceDetailsOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Detalha os lan\u00e7amentos e valores de uma fatura espec\u00edfica",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            }
+        },
+        "/v1/cards/{id}/invoices/{invoiceId}/pay": {
+            "post": {
+                "operationId": "payInvoice",
+                "parameters": [
+                    {
+                        "description": "ID do cart\u00e3o de cr\u00e9dito",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID do cart\u00e3o de cr\u00e9dito",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "ID da fatura",
+                        "in": "path",
+                        "name": "invoiceId",
+                        "required": true,
+                        "schema": {
+                            "description": "ID da fatura",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayInvoiceInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayInvoiceOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Efetua o pagamento total ou parcial de uma fatura com d\u00e9bito em conta",
+                "tags": [
+                    "Cart\u00f5es"
+                ]
+            }
+        },
+        "/v1/categories": {
+            "get": {
+                "operationId": "listCategories",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListCategoriesOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista as categorias de transa\u00e7\u00e3o do n\u00facleo familiar",
+                "tags": [
+                    "Categorias"
+                ]
+            },
+            "post": {
+                "operationId": "createCategory",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCategoryInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateCategoryOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Cria uma categoria personalizada no n\u00facleo familiar",
+                "tags": [
+                    "Categorias"
+                ]
+            }
+        },
+        "/v1/categories/{id}": {
+            "delete": {
+                "operationId": "deleteCategory",
+                "parameters": [
+                    {
+                        "description": "ID da categoria a ser exclu\u00edda",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID da categoria a ser exclu\u00edda",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Exclui uma categoria do n\u00facleo familiar",
+                "tags": [
+                    "Categorias"
+                ]
+            }
+        },
         "/v1/families": {
             "get": {
                 "operationId": "listFamilies",
@@ -1285,6 +3952,261 @@
                 "summary": "Lista os membros de um n\u00facleo familiar",
                 "tags": [
                     "Fam\u00edlias"
+                ]
+            }
+        },
+        "/v1/transactions": {
+            "get": {
+                "operationId": "listTransactions",
+                "parameters": [
+                    {
+                        "description": "Filtrar por conta",
+                        "explode": false,
+                        "in": "query",
+                        "name": "account_id",
+                        "schema": {
+                            "description": "Filtrar por conta",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Filtrar por categoria",
+                        "explode": false,
+                        "in": "query",
+                        "name": "category_id",
+                        "schema": {
+                            "description": "Filtrar por categoria",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Filtrar por tipo (income, expense, transfer)",
+                        "explode": false,
+                        "in": "query",
+                        "name": "kind",
+                        "schema": {
+                            "description": "Filtrar por tipo (income, expense, transfer)",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Filtrar por membro da fam\u00edlia",
+                        "explode": false,
+                        "in": "query",
+                        "name": "user_id",
+                        "schema": {
+                            "description": "Filtrar por membro da fam\u00edlia",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Data inicial",
+                        "explode": false,
+                        "in": "query",
+                        "name": "from",
+                        "schema": {
+                            "description": "Data inicial",
+                            "format": "date-time",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Data final",
+                        "explode": false,
+                        "in": "query",
+                        "name": "to",
+                        "schema": {
+                            "description": "Data final",
+                            "format": "date-time",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Limite de registros",
+                        "explode": false,
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "default": 50,
+                            "description": "Limite de registros",
+                            "format": "int64",
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Offset de pagina\u00e7\u00e3o",
+                        "explode": false,
+                        "in": "query",
+                        "name": "offset",
+                        "schema": {
+                            "default": 0,
+                            "description": "Offset de pagina\u00e7\u00e3o",
+                            "format": "int64",
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListTransactionsOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lista o extrato de transa\u00e7\u00f5es com filtros por per\u00edodo, conta, categoria e membro",
+                "tags": [
+                    "Transa\u00e7\u00f5es"
+                ]
+            },
+            "post": {
+                "operationId": "createTransaction",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateTransactionInputBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CreateTransactionOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Lan\u00e7a uma nova receita, despesa, transfer\u00eancia ou compra parcelada",
+                "tags": [
+                    "Transa\u00e7\u00f5es"
+                ]
+            }
+        },
+        "/v1/transactions/{id}": {
+            "delete": {
+                "operationId": "deleteTransaction",
+                "parameters": [
+                    {
+                        "description": "ID da transa\u00e7\u00e3o",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID da transa\u00e7\u00e3o",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Exclui uma transa\u00e7\u00e3o e estorna o saldo correspondente",
+                "tags": [
+                    "Transa\u00e7\u00f5es"
+                ]
+            },
+            "get": {
+                "operationId": "getTransaction",
+                "parameters": [
+                    {
+                        "description": "ID da transa\u00e7\u00e3o",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "description": "ID da transa\u00e7\u00e3o",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetTransactionOutputBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "default": {
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorModel"
+                                }
+                            }
+                        },
+                        "description": "Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Consulta detalhes de uma transa\u00e7\u00e3o espec\u00edfica",
+                "tags": [
+                    "Transa\u00e7\u00f5es"
                 ]
             }
         }
