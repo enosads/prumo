@@ -185,6 +185,9 @@ public struct BudgetsView: View {
             .task {
                 await loadBudget()
             }
+            .onAppear {
+                Task { await loadBudget() }
+            }
         }
     }
     

@@ -137,6 +137,9 @@ public struct CardsView: View {
             .task {
                 await loadCards()
             }
+            .onAppear {
+                Task { await loadCards() }
+            }
         }
     }
     

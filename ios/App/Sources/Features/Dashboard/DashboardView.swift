@@ -156,6 +156,9 @@ public struct DashboardView: View {
             .task {
                 await loadAccounts()
             }
+            .onAppear {
+                Task { await loadAccounts() }
+            }
         }
     }
     

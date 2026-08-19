@@ -116,6 +116,12 @@ public struct CashFlowView: View {
                 await loadTransactions()
                 await loadMembers()
             }
+            .onAppear {
+                Task {
+                    await loadTransactions()
+                    await loadMembers()
+                }
+            }
         }
     }
     
