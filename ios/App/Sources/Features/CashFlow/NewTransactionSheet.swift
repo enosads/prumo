@@ -20,6 +20,7 @@ public struct NewTransactionSheet: View {
     @State private var members: [FamilyMember] = []
     @State private var isLoading = false
     @State private var isSaving = false
+    @State private var showNewAccountSheet = false
     @State private var errorMessage: String?
     
     public var onSaved: (() -> Void)?
@@ -142,9 +143,19 @@ public struct NewTransactionSheet: View {
                         
                         // Conta de Origem
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(kind == .transfer ? "Conta de Origem" : "Conta / Carteira")
-                                .font(.caption.bold())
-                                .foregroundColor(.secondary)
+                            HStack {
+                                Text(kind == .transfer ? "Conta de Origem" : "Conta / Carteira")
+                                    .font(.caption.bold())
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Button {
+                                    showNewAccountSheet = true
+                                } label: {
+                                    Label("Nova", systemImage: "plus")
+                                        .font(.caption.bold())
+                                        .foregroundColor(Brand.primary)
+                                }
+                            }
                             
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 10) {
@@ -309,6 +320,12 @@ public struct NewTransactionSheet: View {
                     }
                     .fontWeight(.bold)
                     .disabled(amountCents <= 0 || isSaving)
+                }
+            }
+            .sheet(isPresented: $showNewAccountSheet) {
+                NewAccountSheet { createdAcc in
+                    self.accounts.append(createdAcc)
+                    self.selectedAccountID = createdAcc.id
                 }
             }
             .task {

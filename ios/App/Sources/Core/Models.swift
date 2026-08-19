@@ -49,11 +49,11 @@ public struct FamilySummary: Codable, Identifiable, Sendable {
     public let nickname: String?
     
     enum CodingKeys: String, CodingKey {
-        case id
-        case name
-        case baseCurrency = "base_currency"
-        case role
-        case nickname
+        case id = "ID"
+        case name = "Name"
+        case baseCurrency = "BaseCurrency"
+        case role = "Role"
+        case nickname = "Nickname"
     }
 }
 
@@ -68,14 +68,14 @@ public struct FamilyMember: Codable, Identifiable, Sendable {
     public let avatarURL: String?
     
     enum CodingKeys: String, CodingKey {
-        case id
-        case familyID = "family_id"
-        case userID = "user_id"
-        case role
-        case nickname
-        case email
-        case fullName = "full_name"
-        case avatarURL = "avatar_url"
+        case id = "ID"
+        case familyID = "FamilyID"
+        case userID = "UserID"
+        case role = "Role"
+        case nickname = "Nickname"
+        case email = "Email"
+        case fullName = "FullName"
+        case avatarURL = "AvatarUrl"
     }
 }
 
@@ -113,17 +113,17 @@ public struct Account: Codable, Identifiable, Sendable {
     public let ownerName: String?
     
     enum CodingKeys: String, CodingKey {
-        case id
-        case familyID = "family_id"
-        case ownerUserID = "owner_user_id"
-        case name
-        case kind
-        case visibility
-        case currency
-        case initialBalanceCents = "initial_balance_cents"
-        case currentBalanceCents = "current_balance_cents"
-        case color
-        case ownerName = "owner_name"
+        case id = "ID"
+        case familyID = "FamilyID"
+        case ownerUserID = "OwnerUserID"
+        case name = "Name"
+        case kind = "Kind"
+        case visibility = "Visibility"
+        case currency = "Currency"
+        case initialBalanceCents = "InitialBalanceCents"
+        case currentBalanceCents = "CurrentBalanceCents"
+        case color = "Color"
+        case ownerName = "OwnerName"
     }
     
     public var currentBalance: Double {

@@ -3,6 +3,7 @@ import SwiftUI
 public struct DashboardView: View {
     @State private var accounts: [Account] = []
     @State private var isLoading = false
+    @State private var showNewAccountSheet = false
     @State private var errorMessage: String?
     
     private struct AccountsResponse: Codable {
@@ -61,9 +62,13 @@ public struct DashboardView: View {
                             Text("Contas & Carteiras")
                                 .font(.title3.bold())
                             Spacer()
-                            Button("Ver todas") {}
-                                .font(.subheadline)
-                                .foregroundColor(Brand.primary)
+                            Button {
+                                showNewAccountSheet = true
+                            } label: {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title3)
+                                    .foregroundColor(Brand.primary)
+                            }
                         }
                         
                         if isLoading && accounts.isEmpty {
@@ -71,16 +76,27 @@ public struct DashboardView: View {
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding()
                         } else if accounts.isEmpty {
-                            VStack(spacing: 8) {
+                            VStack(spacing: 12) {
                                 Image(systemName: "creditcard.and.123")
                                     .font(.largeTitle)
                                     .foregroundColor(.secondary)
                                 Text("Nenhuma conta cadastrada ainda.")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
+                                Button {
+                                    showNewAccountSheet = true
+                                } label: {
+                                    Label("Criar Primeira Conta", systemImage: "plus")
+                                        .font(.subheadline.bold())
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Brand.primary)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(10)
+                                }
                             }
                             .frame(maxWidth: .infinity)
-                            .padding()
+                            .padding(24)
                             .background(Brand.surface)
                             .cornerRadius(14)
                         } else {
@@ -127,6 +143,11 @@ public struct DashboardView: View {
                         Image(systemName: "rectangle.portrait.and.arrow.right")
                             .foregroundColor(.secondary)
                     }
+                }
+            }
+            .sheet(isPresented: $showNewAccountSheet) {
+                NewAccountSheet { _ in
+                    Task { await loadAccounts() }
                 }
             }
             .refreshable {
