@@ -7,6 +7,7 @@ public struct ChatView: View {
     @State private var isStreaming: Bool = false
     @State private var activeToolCall: String?
     @State private var errorMessage: String?
+    @State private var useAppleIntelligenceOnDevice: Bool = true
     
     private let suggestions = [
         "📊 Qual é o patrimônio líquido consolidado da família?",
@@ -20,6 +21,8 @@ public struct ChatView: View {
     public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                engineBanner
+                
                 if messages.isEmpty {
                     emptyStateView
                 } else {
@@ -40,6 +43,29 @@ public struct ChatView: View {
             .navigationTitle("Copilot de IA")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Button(action: { useAppleIntelligenceOnDevice = true }) {
+                            Label("Apple Intelligence (On-Device)", systemImage: useAppleIntelligenceOnDevice ? "checkmark" : "brain.head.profile")
+                        }
+                        Button(action: { useAppleIntelligenceOnDevice = false }) {
+                            Label("Cloud Multi-LLM (Claude/GPT-4o)", systemImage: !useAppleIntelligenceOnDevice ? "checkmark" : "cloud.fill")
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: useAppleIntelligenceOnDevice ? "sparkles" : "cloud.fill")
+                                .font(.caption.weight(.bold))
+                            Text(useAppleIntelligenceOnDevice ? "On-Device" : "Cloud")
+                                .font(.caption.weight(.semibold))
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(useAppleIntelligenceOnDevice ? Brand.primary.opacity(0.12) : Color.blue.opacity(0.12))
+                        .foregroundStyle(useAppleIntelligenceOnDevice ? Brand.primary : Color.blue)
+                        .clipShape(Capsule())
+                    }
+                }
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: resetConversation) {
                         Image(systemName: "square.and.pencil")
@@ -51,12 +77,28 @@ public struct ChatView: View {
         }
     }
     
+    // MARK: - Engine Banner
+    
+    private var engineBanner: some View {
+        HStack(spacing: 6) {
+            Image(systemName: useAppleIntelligenceOnDevice ? "sparkles" : "cloud.fill")
+                .font(.caption2)
+            Text(useAppleIntelligenceOnDevice ? "Apple Intelligence On-Device • Privacidade Total & ANE" : "Servidor Cloud • Claude 3.5 / GPT-4o")
+                .font(.caption2.weight(.medium))
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .background(useAppleIntelligenceOnDevice ? Brand.primary.opacity(0.08) : Color.blue.opacity(0.08))
+        .foregroundStyle(useAppleIntelligenceOnDevice ? Brand.primary : Color.blue)
+    }
+    
     // MARK: - Empty State
     
     private var emptyStateView: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Spacer(minLength: 40)
+                Spacer(minLength: 30)
                 
                 ZStack {
                     Circle()
@@ -113,7 +155,7 @@ public struct ChatView: View {
                 }
                 .padding(.horizontal, 16)
                 
-                Spacer(minLength: 40)
+                Spacer(minLength: 30)
             }
             .padding(.vertical)
         }
@@ -324,11 +366,21 @@ public struct ChatView: View {
         
         Task {
             do {
-                let stream = APIClient.shared.streamAIChat(
-                    conversationID: conversationID,
-                    message: text,
-                    token: token
-                )
+                let stream: AsyncThrowingStream<AIChatStreamDelta, Error>
+                
+                if useAppleIntelligenceOnDevice {
+                    stream = await OnDeviceCopilotEngine.shared.processMessage(
+                        message: text,
+                        conversationID: conversationID ?? UUID(),
+                        token: token
+                    )
+                } else {
+                    stream = APIClient.shared.streamAIChat(
+                        conversationID: conversationID,
+                        message: text,
+                        token: token
+                    )
+                }
                 
                 for try await delta in stream {
                     await MainActor.run {
