@@ -1,6 +1,6 @@
 # Prumo — Roadmap de Desenvolvimento
 
-> **Status**: Ativo · **Versão**: 1.0 · **Data**: 2026-08-18
+> **Status**: Ativo · **Versão**: 1.1 · **Data**: 2026-08-18
 
 ---
 
@@ -16,25 +16,37 @@
 
 ---
 
-## 🚀 Fase 1 — MVP Fluxo de Caixa, Cartões & Orçamento Familiar (Próxima)
-- **Fatia 1.1: Gestão de Contas, Categorias & Lançamento Rápido**
-  - Cadastro de categorias hierárquicas e transações (receitas/despesas/transferências).
-  - Tela de Extrato com filtros por membro da família e busca instantânea.
-- **Fatia 1.2: Cartões de Crédito, Faturas e Parcelamentos Mês a Mês**
-  - Controle de limite, fechamento, vencimento e divisão de gastos por portador do cartão.
-  - Tela de fatura com visão antecipada dos próximos 12 meses e antecipação com desconto.
-- **Fatia 1.3: Orçamentos por Envelope e Metas de Economia**
-  - Gestão de envelopes orçamentários por categoria com progresso visual no iOS.
+## 🚀 Fase 1 — MVP Fluxo de Caixa, Cartões & Orçamento Familiar ✅
+- [x] **Fatia 1.1: Gestão de Contas, Categorias & Lançamento Rápido**
+  - Cadastro de categorias e transações (receitas/despesas/transferências).
+  - Tela de Extrato no iOS com agrupamento diário, busca instantânea e filtros por membro da família.
+  - Modal de Lançamento Rápido (`NewTransactionSheet`) com `CampoMonetario` e criação de contas (`NewAccountSheet`).
+- [x] **Fatia 1.2: Cartões de Crédito, Faturas e Parcelamentos Mês a Mês**
+  - Controle de limite, faturas e liquidação com débito em conta corrente.
+  - Projeção de faturas dos próximos 12 meses com divisão por portador do cartão.
+  - Motor de antecipação com desconto a valor presente ($PV = \frac{FV}{(1+i)^n}$).
+  - Telas iOS: Carrossel de cartões, detalhes da fatura e sheet de antecipação.
+- [x] **Fatia 1.3: Orçamentos por Envelope e Metas de Economia**
+  - Envelopes mensais por categoria com cálculo de realizado vs. orçado e valor "Livre para Investir".
+  - Tela iOS com transição de cor (Verde <75%, Âmbar 75-100%, Vermelho >100%) e sheet de configuração.
+- [x] **Infraestrutura & Deploy Isolado**:
+  - Cluster PostgreSQL dedicado `prumo-db` no Fly.io.
+  - App `dev.enosads.prumo` instalado e rodando no iPhone físico.
+  - 26/26 asserções E2E passando com 100% de sucesso.
+  - PR #3 aprovada e mergeada na `main`.
 
 ---
 
-## 🧠 Fase 2 — Agente de IA Nativo & Function Calling
-- **Fatia 2.1: Orquestrador de IA & Chat Interativo com Streaming**
-  - Adapters para Anthropic / OpenAI / Gemini e streaming WSS/SSE.
-  - Ferramentas de consulta rápida (`get_consolidated_net_worth`, `query_transactions`).
-- **Fatia 2.2: Execução de Ações Financeiras com Confirmação (*Human-in-the-Loop*)**
-  - Ferramentas de mutação (`create_transaction`, `settle_invoice_installment`, `recalculate_budget_envelopes`).
-  - Cards interativos de aprovação no chat iOS e trilha de auditoria (`ai_tool_executions`).
+## 🧠 Fase 2 — Agente de IA Nativo, Function Calling & Taxonomia Calends (Atual)
+- **Fatia 2.1: Taxonomia Enriquecida (13 Roots) & Orquestrador de IA**
+  - Alinhamento da taxonomia de categorias do Calends (13 raízes semânticas com slugs imutáveis em inglês + subcategorias).
+  - Categoria de sistema `uncategorized` como inbox transitório para OCR/IA.
+  - Orquestrador de IA com adapters para Anthropic Claude, OpenAI e Gemini.
+  - Streaming SSE para o app iOS e ferramentas (*tools*) de leitura (`get_consolidated_net_worth`, `query_cash_flow`, `get_budget_status`, `get_card_projections`).
+- **Fatia 2.2: Execução de Ações Financeiras, Modos de Operação & Audit Trail**
+  - Dois modos operacionais: **Modo Confirmação** (cards de aprovação *Human-in-the-Loop* no chat SwiftUI) e **Modo Autônomo** (*act without asking* para tarefas de baixo risco).
+  - Trilha de auditoria imutável (`ai_action_audits`) com mecanismo de **Desfazer (Undo) até 30 dias**.
+  - Tokenização de PII em memória antes do envio para LLM cloud e controle de hard cap de custos (burn cap).
 
 ---
 
@@ -48,5 +60,5 @@
 ---
 
 ## 🔄 Fase 4 — Automação, Offline-First & Relatórios Periódicos
-- **Fatia 4.1: Sincronização Delta com SwiftData (Offline-First)**
+- **Fatia 4.1: Sincronização Delta com SwiftData / GRDB (Offline-First)**
 - **Fatia 4.2: Relatórios Periódicos Agendados & Push APNs Nativo**
